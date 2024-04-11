@@ -71,8 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>G:\visual studio projects\pathtracer\pathtracer\imgui;G:\Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>G:\visual studio projects\pathtracer\pathtracer\imgui;G:\Libraries\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>G:\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>G:\Libraries\libs;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>G:\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>G:\Libraries\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -129,6 +133,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

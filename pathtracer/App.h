@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 class App
 {
 public:
@@ -9,12 +10,14 @@ public:
 
 private:
 
+    GLuint textureID;
+    GLuint PBO;
+
     struct ViewPortData {
-        int width;
-        int height;
+        uint32_t width;
+        uint32_t height;
         int image_width, image_height;
         uint32_t* ImageData = NULL;
-        GLuint textureID;
 
         ViewPortData(int width, int height) {
             this->width = width;
@@ -33,5 +36,7 @@ private:
 
 	void init();
     void render();
+    uint32_t raygen(int x, int y);
+    uint32_t convertColor(glm::vec4& color);
 };
 
