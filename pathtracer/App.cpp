@@ -8,6 +8,7 @@
 #include <algorithm>
 
 
+
 App::App()
 {
     init();
@@ -56,6 +57,7 @@ void App::init()
 
     glGenBuffers(1, &PBO);
 
+    camera = new Camera(glm::vec3(0,0,2), 45, viewPortData->width, viewPortData->height); // temp data
 
 
     while (!glfwWindowShouldClose(window)) {
@@ -67,7 +69,7 @@ void App::init()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // measure time here
+        // RENDER -<-A<Z-D-AS-DAS-D-ASD
         auto startTime = std::chrono::high_resolution_clock::now();
         render();
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -84,6 +86,7 @@ void App::init()
 
         ImGui::Begin("Settings");
         ImGui::Text("Render time: %f ms", elapsed.count());
+        ImGui::Text("Render time: %f fps", 1000/elapsed.count());
         ImGui::End();
         
         ImGui::Render();
@@ -102,6 +105,7 @@ void App::init()
 
 void App::render()
 {
+    // If we need to resize the viewport window
     if (!viewPortData->ImageData || viewPortData->image_width != viewPortData->width || viewPortData->image_height != viewPortData->height) {
         delete[]viewPortData->ImageData;
         viewPortData->ImageData = new uint32_t[viewPortData->width * viewPortData->height];
@@ -114,43 +118,74 @@ void App::render()
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         viewPortData->image_width = viewPortData->width;
         viewPortData->image_height = viewPortData->height;
+        camera->resize(viewPortData->width, viewPortData->height);
     }
 
-    for (uint32_t i = 0; i < viewPortData->width * viewPortData->height; i++) {
-        viewPortData->ImageData[i] = raygen(i % viewPortData->width, i / viewPortData->height);
+
+    for (uint32_t y = 0; y < viewPortData->height; y++) {
+        for (uint32_t x = 0; x < viewPortData->width; x++) {
+            viewPortData->ImageData[x + y * viewPortData->width] = convertColor(glm::clamp(glm::vec4(raygen(x, y), 1.0f), 0.0f, 1.0f));
+        }
     }
 
-    //glBindTexture(GL_TEXTURE_2D, viewPortData->textureID); // not needed as we only have one texture
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
-    void* ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-    if (ptr) {
-        memcpy(ptr, viewPortData->ImageData, viewPortData->width * viewPortData->height*4);
-        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-    }
+    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, viewPortData->width * viewPortData->height * 4, viewPortData->ImageData);
 
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, viewPortData->width, viewPortData->height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-
 }
 
 
-uint32_t App::raygen(int x, int y) {
 
-    // lets cook
-    
-    // Normalized pixel coordinates
-    glm::vec2 uv = glm::vec2(x / (float)viewPortData->width, y / (float)viewPortData->height);
+glm::vec3 App::raygen(uint32_t x, uint32_t y) {
 
-    glm::vec4 color = glm::vec4(uv.x, uv.y, 0, 1.0);
-    
-    return convertColor(color);
+    struct Sphere {
+        glm::vec3 position;
+        glm::vec4 color;
+        float radius;
+    };
+    Sphere sphere1;
+
+    sphere1.position = glm::vec3(0, 0, 0);
+    sphere1.color = glm::vec4(1, 0, 1, 1);
+    sphere1.radius = 0.5f;
+
+
+
+    glm::vec3 cameraPos = camera->getPosition();
+    cameraPos = cameraPos - sphere1.position;
+    glm::vec3 rayDir = camera->getDirections()[x + y * viewPortData->width];
+
+    // Equations to calculate hit on a sphere.
+    float a = dot(rayDir, rayDir);
+    float b = 2.0f * dot(cameraPos, rayDir);
+    float c = dot(cameraPos, cameraPos) - (sphere1.radius * sphere1.radius);
+    float disc = b * b - 4.0f * a * c;
+
+    glm::vec3 color = glm::vec3(0, 0, 0);
+    if (disc >= 0) {
+        color = glm::vec3(1, 0, 1);
+    }
+    else {
+        return color;
+    }
+
+    float t = ((-b - sqrt(disc)) / (2.0f * a));
+
+    glm::vec3 hitPos = cameraPos + rayDir * t;
+    glm::vec3 normal = normalize(hitPos);
+
+    glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0);
+    float lightIntensity = glm::max(dot(normal, -lightDir), 0.0f);
+    color *= lightIntensity;
+
+    return color;
 }
 
 
-uint32_t App::convertColor(glm::vec4& color) {
-    color = glm::clamp(color, glm::vec4(0.0f), glm::vec4(1.0f));
+uint32_t App::convertColor(const glm::vec4& color) {
 
     uint8_t r = static_cast<uint8_t>(color.r * 255.0f);
     uint8_t g = static_cast<uint8_t>(color.g * 255.0f);

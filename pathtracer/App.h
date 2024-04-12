@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include "Camera.h"
 class App
 {
 public:
@@ -16,10 +17,10 @@ private:
     struct ViewPortData {
         uint32_t width;
         uint32_t height;
-        int image_width, image_height;
+        uint32_t image_width, image_height;
         uint32_t* ImageData = NULL;
 
-        ViewPortData(int width, int height) {
+        ViewPortData(uint32_t width, uint32_t height) {
             this->width = width;
             this->height = height;
             this->image_height = width;
@@ -31,12 +32,13 @@ private:
     ViewPortData* viewPortData = new ViewPortData(1920, 1080);
 
 	GLFWwindow* window;
-
-
+    Camera* camera;
 
 	void init();
     void render();
-    uint32_t raygen(int x, int y);
-    uint32_t convertColor(glm::vec4& color);
+    glm::vec3 raygen(uint32_t x, uint32_t y);
+    uint32_t convertColor(const glm::vec4& color);
+
+
 };
 
