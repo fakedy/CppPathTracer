@@ -147,14 +147,15 @@
     <ClCompile Include="imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
-    <ClCompile Include="pathtracer.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="PathTracer.cpp" />
     <ClCompile Include="UserInterface.cpp" />
-    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GlfwWindow.h" />
+    <ClInclude Include="PathTracer.h" />
     <ClInclude Include="UserInterface.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

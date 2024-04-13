@@ -1,19 +1,13 @@
 #include "GlfwWindow.h"
-#include <iostream>
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-#include <chrono>
-#include <glm/glm.hpp>
-#include <algorithm>
 #include "UserInterface.h"
-
+#include <iostream>
 
 UserInterface* UI = new UserInterface();
 
 GlfwWindow::GlfwWindow()
 {
     init();
+    UI->init(window);
 }
 
 void GlfwWindow::init()
@@ -32,6 +26,7 @@ void GlfwWindow::init()
 
     glfwMakeContextCurrent(window);
 
+
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "GLAD FAILED TO LOAD" << std::endl;
         glfwDestroyWindow(window);
@@ -39,25 +34,31 @@ void GlfwWindow::init()
         return;
     }
 
-
-    // replace this and render somewhere else
-    UI->init();
-    while (!glfwWindowShouldClose(window)) {
-
-
-        UI->draw();
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
- 
-    UI->shutdown();
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    // ----------------------------------------
 }
 
 bool GlfwWindow::windowShouldClose()
 {
     return windowShouldClose();
 }
+
+void GlfwWindow::update()
+{
+    // not sure i should have opengl stuff here but i dunno
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    UI->draw();
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+}
+
+void GlfwWindow::shutdown()
+{
+    UI->shutdown();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
+
+
+
+
