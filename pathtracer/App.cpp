@@ -7,11 +7,17 @@
 #include <glm/glm.hpp>
 #include <algorithm>
 
+#include "GlfwWindow.h"
+
 
 
 App::App()
 {
-    init();
+    //init();
+    Window* window = new GlfwWindow();
+    while (!window->windowShouldClose()) {
+        
+    }
 }
 
 App::~App()
@@ -21,34 +27,6 @@ App::~App()
 void App::init()
 {
     
-    if (!glfwInit()) {
-        std::cout << "GLFW FAILED TO INIT" << std::endl;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-
-    window = glfwCreateWindow(1920, 1080, "Pathtracing", NULL, NULL);
-    if (!window) {
-        std::cout << "WINDOW CREATION FAILED" << std::endl;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "GLAD FAILED TO LOAD" << std::endl;
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return;
-    }
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init();
-
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -57,17 +35,13 @@ void App::init()
 
     glGenBuffers(1, &PBO);
 
-    camera = new Camera(glm::vec3(0,0,2), 45, viewPortData->width, viewPortData->height); // temp data
+    camera = new Camera(glm::vec3(0, 0, 2), 45, viewPortData->width, viewPortData->height); // temp data
 
 
     while (!glfwWindowShouldClose(window)) {
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
 
         // RENDER -<-A<Z-D-AS-DAS-D-ASD
         auto startTime = std::chrono::high_resolution_clock::now();
@@ -76,31 +50,7 @@ void App::init()
 
         std::chrono::duration<double, std::milli> elapsed = currentTime - startTime;
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::Begin("ViewPort");
-        viewPortData->width = ImGui::GetContentRegionAvail().x;
-        viewPortData->height = ImGui::GetContentRegionAvail().y;
-        ImGui::Image((void*)(intptr_t)textureID, ImVec2(viewPortData->width, viewPortData->height), ImVec2(0,1), ImVec2(1,0));
-        ImGui::End();
-        ImGui::PopStyleVar();
-
-        ImGui::Begin("Settings");
-        ImGui::Text("Render time: %f ms", elapsed.count());
-        ImGui::Text("Render time: %f fps", 1000/elapsed.count());
-        ImGui::End();
-        
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
     }
-
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    glfwDestroyWindow(window);
-    glfwTerminate();
 }
 
 void App::render()
@@ -166,7 +116,7 @@ glm::vec3 App::raygen(uint32_t x, uint32_t y) {
 
     glm::vec3 color = glm::vec3(0, 0, 0);
     if (disc >= 0) {
-        color = glm::vec3(1, 0, 1);
+        color = glm::vec3(1, 1, 0);
     }
     else {
         return color;
