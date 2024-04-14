@@ -1,10 +1,14 @@
 #pragma once
 #include "PathTracer.h"
+#include "ViewPortData.h"
+#include <GLFW/glfw3.h>
 
 class UserInterface
 {
 
 public:
+
+	UserInterface(ViewPortData* viewPortData);
 
 	void init(GLFWwindow* window);
 
@@ -12,9 +16,11 @@ public:
 
 	void shutdown();
 
+	void onResize();
+
 private:
 
-	PathTracer* pathTracer;
+	ViewPortData* viewPortData;
 
 };
 

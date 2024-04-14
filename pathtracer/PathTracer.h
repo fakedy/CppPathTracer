@@ -1,35 +1,20 @@
 #pragma once
-#include <GLFW/glfw3.h>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include "Camera.h"
 #include <chrono>
+#include "ViewPortData.h"
 
 class PathTracer
 {
 public:
 
+    PathTracer(ViewPortData* viewPortData, Camera* camera);
 
     void render();
-    GLuint textureID;
 
-    struct ViewPortData {
-        uint32_t width;
-        uint32_t height;
-        uint32_t image_width, image_height;
-        uint32_t* ImageData = NULL;
+    ViewPortData* viewPortData;
 
-        ViewPortData(uint32_t width, uint32_t height) {
-            this->width = width;
-            this->height = height;
-            this->image_height = width;
-            this->image_height = height;
-            this->ImageData = new uint32_t[width * height];
-        }
-    };
-
-    ViewPortData* viewPortData = new ViewPortData(1920, 1080);
-
-    std::chrono::duration<double, std::milli> elapsed;
 
 private:
 

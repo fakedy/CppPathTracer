@@ -1,16 +1,12 @@
-#include "GlfwWindow.h"
-#include "UserInterface.h"
+#include "Window.h"
 #include <iostream>
 
-UserInterface* UI = new UserInterface();
-
-GlfwWindow::GlfwWindow()
+Window::Window()
 {
     init();
-    UI->init(window);
 }
 
-void GlfwWindow::init()
+void Window::init()
 {
     if (!glfwInit()) {
         std::cout << "GLFW FAILED TO INIT" << std::endl;
@@ -36,27 +32,34 @@ void GlfwWindow::init()
 
 }
 
-bool GlfwWindow::windowShouldClose()
+bool Window::windowShouldClose()
 {
-    return windowShouldClose();
+    return glfwWindowShouldClose(window);
 }
 
-void GlfwWindow::update()
+void Window::update(std::function<void()> drawFunction)
 {
     // not sure i should have opengl stuff here but i dunno
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    UI->draw();
+
+    drawFunction();
+
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
 
-void GlfwWindow::shutdown()
+void Window::shutdown()
 {
-    UI->shutdown();
     glfwDestroyWindow(window);
     glfwTerminate();
 }
+
+GLFWwindow* Window::getWindow()
+{
+    return window;
+}
+
 
 
 

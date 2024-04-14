@@ -1,11 +1,21 @@
 #pragma once
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <functional>
 class Window
 {
 public:
 
-	virtual void init() = 0;
-	virtual bool windowShouldClose() = 0;
-	virtual void update() = 0;
-	virtual void shutdown() = 0;
+	Window();
+	bool windowShouldClose();
+	void update(std::function<void()> drawFunction);
+	void shutdown();
+	GLFWwindow* getWindow();
+
+private:
+
+	void init();
+	GLFWwindow* window;
+
 };
 

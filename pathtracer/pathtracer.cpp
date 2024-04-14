@@ -1,21 +1,24 @@
 #include "PathTracer.h"
-#include <glad/glad.h>
 #include <chrono>
+#include "Camera.h"
 
+
+PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
+{
+    this->viewPortData = viewPortData;
+    this->camera = camera;
+    init();
+}
 
 void PathTracer::init()
 {
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glGenTextures(1, &viewPortData->textureID);
+    glBindTexture(GL_TEXTURE_2D, viewPortData->textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glGenBuffers(1, &PBO);
-
-    camera = new Camera(glm::vec3(0, 0, 2), 45, viewPortData->width, viewPortData->height); // temp data
-
 }
 
 void PathTracer::render()
@@ -27,7 +30,7 @@ void PathTracer::render()
         delete[]viewPortData->ImageData;
         viewPortData->ImageData = new uint32_t[viewPortData->width * viewPortData->height];
 
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        glBindTexture(GL_TEXTURE_2D, viewPortData->textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viewPortData->width, viewPortData->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
@@ -48,14 +51,14 @@ void PathTracer::render()
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
     glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, viewPortData->width * viewPortData->height * 4, viewPortData->ImageData);
 
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, viewPortData->textureID);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, viewPortData->width, viewPortData->height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     auto currentTime = std::chrono::high_resolution_clock::now();
 
-    elapsed = currentTime - startTime;
+    viewPortData->elapsed = currentTime - startTime;
 }
 
 
