@@ -39,7 +39,6 @@ bool Window::windowShouldClose()
 
 void Window::update(std::function<void()> drawFunction)
 {
-    // not sure i should have opengl stuff here but i dunno
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 

@@ -154,6 +154,7 @@
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Ray.h" />
     <ClInclude Include="ViewPortData.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="PathTracer.h" />

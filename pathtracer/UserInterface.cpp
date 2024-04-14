@@ -36,8 +36,10 @@ void UserInterface::draw()
     ImGui::PopStyleVar();
 
     ImGui::Begin("Settings");
-    ImGui::Text("Render time: %f ms", viewPortData->elapsed.count());
-    ImGui::Text("Render time: %f fps", 1000 / viewPortData->elapsed.count());
+    ImGui::Text("Frame time: %f ms", viewPortData->elapsed.count());
+    ImGui::Text("Frame time: %f fps", 1000 / viewPortData->elapsed.count());
+    ImGui::Text("Frame count: %i", 1); // TODO frame count
+    ImGui::Text("Rendering resolution: %ix%i ", viewPortData->image_width, viewPortData->image_height);
     
     ImGui::End();
 
