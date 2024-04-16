@@ -2,6 +2,8 @@
 #include <vector>
 #include <random>
 #include <iostream>
+#include <execution>
+
 
 std::vector<PathTracer::Sphere> spheres;
 
@@ -9,6 +11,15 @@ PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
 {
     this->viewPortData = viewPortData;
     this->camera = camera;
+    accumilated_image.resize(viewPortData->width*viewPortData->height);
+    widthIterator.resize(viewPortData->width);
+    heightIterator.resize(viewPortData->height);
+    for (uint32_t i = 0; i < viewPortData->width; i++) {
+        widthIterator[i] = i;
+    }
+    for (uint32_t i = 0; i < viewPortData->height; i++) {
+        heightIterator[i] = i;
+    }
     init();
 }
 
@@ -73,12 +84,19 @@ void PathTracer::render()
         resize();
     }
 
-    for (uint32_t y = 0; y < viewPortData->height; y++) {
+    std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
         for (uint32_t x = 0; x < viewPortData->width; x++) {
-            viewPortData->ImageData[x + y * viewPortData->width] = convertColor(glm::clamp(glm::vec4(raygen(x, y), 1.0f), 0.0f, 1.0f));
+            glm::vec4 color = glm::vec4(raygen(x, y), 1.0f);
+            accumilated_image[x + y * viewPortData->width] += color;
+            glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
+            acc_color /= (float)viewPortData->frameCount;
+            acc_color = glm::clamp(acc_color, glm::vec4(0.0f), glm::vec4(1.0f));
+            viewPortData->ImageData[x + y * viewPortData->width] = convertColor(acc_color);
         }
-    }
+    });
 
+
+    viewPortData->frameCount++;
     bufferData();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -100,6 +118,18 @@ void PathTracer::resize()
     viewPortData->image_width = viewPortData->width;
     viewPortData->image_height = viewPortData->height;
     camera->resize(viewPortData->width, viewPortData->height);
+    
+    viewPortData->frameCount = 1;
+    accumilated_image.resize(viewPortData->width * viewPortData->height);
+    accumilated_image.clear();
+    widthIterator.resize(viewPortData->width);
+    heightIterator.resize(viewPortData->height);
+    for (uint32_t i = 0; i < viewPortData->width; i++) {
+        widthIterator[i] = i;
+    }
+    for (uint32_t i = 0; i < viewPortData->height; i++) {
+        heightIterator[i] = i;
+    }
 }
 
 void PathTracer::bufferData()

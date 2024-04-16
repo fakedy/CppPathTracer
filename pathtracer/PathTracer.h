@@ -40,6 +40,10 @@ private:
     void init();
     void resize();
     void bufferData();
+    
+
+    std::vector<glm::vec4> accumilated_image;
+    std::vector<uint32_t> widthIterator, heightIterator;
 
     PayLoad traceRay(Ray ray);
     PayLoad closestHit(Ray ray, float hitDistance, Sphere* closestSphere);
