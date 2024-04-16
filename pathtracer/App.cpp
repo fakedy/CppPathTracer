@@ -8,7 +8,7 @@
 void renderData();
 Window* window = new Window();
 ViewPortData* viewPortData = new ViewPortData(1920, 1080);
-Camera* camera = new Camera(glm::vec3(0,0,2), 45, 1920, 1080);
+Camera* camera = new Camera(glm::vec3(0,0,6), 45, 1920, 1080);
 PathTracer* pathTracer = new PathTracer(viewPortData, camera);
 UserInterface* UI = new UserInterface(viewPortData);
 

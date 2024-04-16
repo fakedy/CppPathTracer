@@ -27,28 +27,42 @@ void PathTracer::init()
     Sphere sphere1;
     Sphere sphere2;
     Sphere sphere3;
+    Sphere sphere4;
+    Sphere sphere5;
 
 
-    sphere1.position = glm::vec3(0, 0, -3);
+    sphere1.position = glm::vec3(-2, 1, 0);
     sphere1.color = glm::vec3(1, 0, 1);
-    sphere1.radius = 0.5f;
-    sphere1.roughness = 0.3f;
+    sphere1.radius = 1.0f;
+    sphere1.roughness = 0.2f;
 
-    sphere2.position = glm::vec3(-1, 1, -1);
-    sphere2.color = glm::vec3(1, 1, 0);
-    sphere2.radius = 0.5f;
-    sphere2.roughness = 0.3f;
-
+    sphere2.position = glm::vec3(0, -101.5, 0);
+    sphere2.color = glm::vec3(0.20, 0.25, 1);
+    sphere2.radius = 100.0f;
+    sphere2.roughness = 0.2f;
+    
     sphere3.position = glm::vec3(2, -1, 0);
     sphere3.color = glm::vec3(0, 0, 1);
     sphere3.radius = 1.5f;
-    sphere3.roughness = 0.3f;
+    sphere3.roughness = 0.2f;
+
+    sphere4.position = glm::vec3(-1, -1, -9);
+    sphere4.color = glm::vec3(0.8, 0.1, 0.1);
+    sphere4.radius = 3.0f;
+    sphere4.roughness = 0.2f;
+
+    sphere5.position = glm::vec3(-1, -1.1, 0.1);
+    sphere5.color = glm::vec3(0.1, 0.3, 0.5);
+    sphere5.radius = 0.5f;
+    sphere5.roughness = 0.2f;
 
 
     spheres.push_back(sphere1);
     spheres.push_back(sphere2);
     spheres.push_back(sphere3);
-
+    spheres.push_back(sphere4);
+    spheres.push_back(sphere5);
+    
 }
 
 void PathTracer::render()
@@ -141,11 +155,11 @@ PathTracer::PayLoad PathTracer::closestHit(Ray ray, float hitDistance, Sphere* c
     glm::vec3 cameraPos = ray.origin - closestSphere->position;
 
     PayLoad payLoad;
-
     payLoad.hitDistance = hitDistance;
     payLoad.hitPosition = cameraPos + ray.direction * hitDistance;
     payLoad.normal = glm::normalize(payLoad.hitPosition);
     payLoad.sphere = closestSphere;
+    payLoad.hitPosition += closestSphere->position;
     return payLoad;
 }
 
@@ -164,30 +178,28 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
     ray.origin = cameraPos;
     ray.direction = rayDir;
 
-    glm::vec3 finalColor = glm::vec3(0, 0, 0);
+    glm::vec3 finalColor(0.0f);
+    glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0);
+    glm::vec3 backGroundColor = glm::vec3(0.6f, 0.7f, 0.9f);
     
-    int maxBounce = 6;
+    int maxBounce = 5;
     float energy = 1.0;
 
     for (int i = 0; i < maxBounce; i++) {
         PayLoad payLoad = traceRay(ray);
         if (payLoad.hitDistance < 0) { // if no hit
-            finalColor += glm::vec3(0.1, 0.1, 0.1) * energy;
+            finalColor += backGroundColor * energy;
             break;
         }
-        glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0);
         float lightIntensity = glm::max(dot(payLoad.normal, -lightDir), 0.0f);
         glm::vec3 sphereColor = payLoad.sphere->color * lightIntensity;
         finalColor += sphereColor * energy;
-        energy *= 0.7;
+        energy *= 0.5;
         
         // might need to noramlize something
-        ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f;
-        glm::vec3 randVec = glm::vec3(
-            1 - getRandFloat(0, 1) * payLoad.sphere->roughness,
-            1 - getRandFloat(0, 1) * payLoad.sphere->roughness,
-            1 - getRandFloat(0, 1) * payLoad.sphere->roughness);
-        ray.direction = glm::normalize(glm::reflect(ray.direction, payLoad.normal*randVec));
+        ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the sphere + offset by normal dir
+        glm::vec3 randVec = glm::vec3(getRandFloat(-0.5f, 0.5f), getRandFloat(-0.5f, 0.5f), getRandFloat(-0.5f, 0.5f));
+        ray.direction = glm::reflect(ray.direction, payLoad.normal + payLoad.sphere->roughness * randVec);
 
     }
     
@@ -196,6 +208,9 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
 
 float PathTracer::getRandFloat(float lower, float upper) {
     float random = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (upper-lower)));
+    random = random + lower;
+    //std::cout << random << std::endl;
+    // ye this is not good
     return random;
 }
 
