@@ -5,23 +5,18 @@
 #include <chrono>
 #include "ViewPortData.h"
 #include "Ray.h"
+#include "Scene.h"
 
 class PathTracer
 {
 public:
 
-    PathTracer(ViewPortData* viewPortData, Camera* camera);
+    PathTracer(ViewPortData* viewPortData, Camera* camera, Scene* scene);
 
     void render();
 
     ViewPortData* viewPortData;
 
-    struct Sphere {
-        glm::vec3 position;
-        glm::vec3 color;
-        float radius;
-        float roughness;
-    };
 
 private:
 
@@ -30,10 +25,11 @@ private:
         glm::vec3 normal;
         float hitDistance;
         glm::vec3 hitPosition;
-        Sphere* sphere;
+        Surface* surface;
     };
 
     Camera* camera;
+    Scene* scene;
 
     GLuint PBO;
 
@@ -46,7 +42,7 @@ private:
     std::vector<uint32_t> widthIterator, heightIterator;
 
     PayLoad traceRay(Ray ray);
-    PayLoad closestHit(Ray ray, float hitDistance, Sphere* closestSphere);
+    PayLoad closestHit(Ray ray, float hitDistance, Surface* closestSurface);
     PayLoad miss(Ray ray);
 
     float getRandFloat(float lower, float upper);

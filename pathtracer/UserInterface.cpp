@@ -37,10 +37,10 @@ void UserInterface::draw()
 
     ImGui::Begin("Settings");
     ImGui::Text("Frame time: %f ms", viewPortData->elapsed.count());
-    ImGui::Text("Frame time: %f fps", 1000 / viewPortData->elapsed.count());
-    ImGui::Text("Frame count: %i", viewPortData->frameCount); // TODO frame count
+    ImGui::Text("Frame rate: %f fps", 1000 / viewPortData->elapsed.count());
+    ImGui::Text("Frame count: %i", viewPortData->frameCount);
     ImGui::Text("Rendering resolution: %ix%i ", viewPortData->image_width, viewPortData->image_height);
-    
+    ImGui::Text("Device: CPU");
     ImGui::End();
 
     ImGui::Render();

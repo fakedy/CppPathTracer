@@ -14,7 +14,7 @@ public:
             this->ImageData = new uint32_t[width * height];
         }
 
-    GLuint textureID; // viewport texture
+        GLuint textureID; // viewport texture
 
         uint32_t width; // viewport size
         uint32_t height; 

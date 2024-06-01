@@ -1,6 +1,8 @@
 #include "Window.h"
 #include <iostream>
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 Window::Window()
 {
     init();
@@ -15,13 +17,13 @@ void Window::init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 
-    window = glfwCreateWindow(1920, 1080, "Pathtracing", NULL, NULL);
+    window = glfwCreateWindow(1920, 1080, "Pathtracer", NULL, NULL);
     if (!window) {
         std::cout << "WINDOW CREATION FAILED" << std::endl;
     }
 
+    glfwSetKeyCallback(window, key_callback);
     glfwMakeContextCurrent(window);
-
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "GLAD FAILED TO LOAD" << std::endl;
@@ -31,6 +33,7 @@ void Window::init()
     }
 
 }
+
 
 bool Window::windowShouldClose()
 {
@@ -57,6 +60,17 @@ void Window::shutdown()
 GLFWwindow* Window::getWindow()
 {
     return window;
+}
+
+
+// testing some simple input
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
 

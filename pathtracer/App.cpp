@@ -7,9 +7,10 @@
 
 void renderData();
 Window* window = new Window();
-ViewPortData* viewPortData = new ViewPortData(1920, 1080);
-Camera* camera = new Camera(glm::vec3(0,0,6), 45, 1920, 1080);
-PathTracer* pathTracer = new PathTracer(viewPortData, camera);
+ViewPortData* viewPortData = new ViewPortData(1920, 1080); // width, height
+Camera* camera = new Camera(glm::vec3(0,0,6), 45, 1920, 1080); // pos, fov, width, height
+Scene* scene = new Scene();
+PathTracer* pathTracer = new PathTracer(viewPortData, camera, scene);
 UserInterface* UI = new UserInterface(viewPortData);
 
 App::App()
