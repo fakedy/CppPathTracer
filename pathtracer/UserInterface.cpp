@@ -41,6 +41,33 @@ void UserInterface::draw()
     ImGui::Text("Frame count: %i", viewPortData->frameCount);
     ImGui::Text("Rendering resolution: %ix%i ", viewPortData->image_width, viewPortData->image_height);
     ImGui::Text("Device: CPU");
+    ImGui::SliderInt("Bounces", &viewPortData->bounces, 1, 4);
+
+    if(ImGui::Button("Reset")) {
+        viewPortData->shouldReset = true;
+    }
+
+    ImGui::End();
+
+    ImGui::Begin("Scene", NULL, ImGuiWindowFlags_MenuBar);
+    ImGui::BeginMenuBar();
+    ImGui::Text("Scene");
+    ImGui::EndMenuBar();
+
+    float colorArray[3];
+    for (size_t i = 0; i < viewPortData->scene->surfaces.size(); i++)
+    {
+        Surface &object = viewPortData->scene->surfaces[i];
+        ImGui::Text((object.name + std::to_string(i)).c_str());
+            colorArray[0] = object.color.r;
+            colorArray[1] = object.color.g;
+            colorArray[2] = object.color.b;
+        if(ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), colorArray)) { // because imgui use the label as id
+            object.color = glm::vec3(colorArray[0], colorArray[1], colorArray[2]);     // we cant have the same label for each picker
+            viewPortData->shouldReset = true;
+        }
+    }
+
     ImGui::End();
 
     ImGui::Render();

@@ -18,6 +18,7 @@ public:
 	const std::vector<glm::vec3>& getDirections() const { return directions; }
 
 	void resize(uint32_t width, uint32_t height);
+	void update();
 
 
 private:
@@ -46,6 +47,8 @@ private:
 	void calculateView();
 	void calculateProj();
 	void calcDirections();
+
+
 
 };
 

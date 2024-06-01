@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <chrono>
+#include "Scene.h"
 
 class ViewPortData 
 {
@@ -14,6 +15,8 @@ public:
             this->ImageData = new uint32_t[width * height];
         }
 
+        Scene* scene = new Scene();
+
         GLuint textureID; // viewport texture
 
         uint32_t width; // viewport size
@@ -22,6 +25,10 @@ public:
         uint32_t* ImageData = NULL; // data we send to gpu and imgui
 
         uint32_t frameCount = 1;
+        int bounces = 4;
+        bool shouldReset = false;
+
+        // Starting to realise having this as just some data storage is inconvenient when wanting to make calls
 
 
     std::chrono::duration<double, std::milli> elapsed; // frame time

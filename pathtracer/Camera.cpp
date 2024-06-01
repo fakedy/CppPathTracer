@@ -22,6 +22,12 @@ void Camera::resize(uint32_t width, uint32_t height)
 	calcDirections();
 }
 
+void Camera::update() {
+	calculateView();
+	calculateProj();
+	calcDirections();
+}
+
 void Camera::calculateView()
 {
 	view = glm::lookAt(cameraPos, cameraPos + lookDir, upDir);

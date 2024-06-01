@@ -6,11 +6,10 @@
 #include "Surface.h"
 
 
-PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera, Scene* scene)
+PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
 {
     this->viewPortData = viewPortData;
     this->camera = camera;
-    this->scene = scene;
     accumilated_image.resize(viewPortData->width*viewPortData->height);
     widthIterator.resize(viewPortData->width);
     heightIterator.resize(viewPortData->height);
@@ -44,21 +43,27 @@ void PathTracer::render()
     if (!viewPortData->ImageData || viewPortData->image_width != viewPortData->width || viewPortData->image_height != viewPortData->height) {
         resize();
     }
+    if (viewPortData->shouldReset == true) {
+        update();
+        viewPortData->shouldReset = false;
+    }
 
-    std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
-        for (uint32_t x = 0; x < viewPortData->width; x++) {
-            glm::vec4 color = glm::vec4(raygen(x, y), 1.0f);
-            accumilated_image[x + y * viewPortData->width] += color;
-            glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
-            acc_color /= (float)viewPortData->frameCount;
-            acc_color = glm::clamp(acc_color, glm::vec4(0.0f), glm::vec4(1.0f));
-            viewPortData->ImageData[x + y * viewPortData->width] = convertColor(acc_color);
-        }
-    });
+    if (viewPortData->frameCount < 100){ // this is just a pause preventing cpu from heating my room up when idle
+        std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
+            for (uint32_t x = 0; x < viewPortData->width; x++) {
+                glm::vec4 color = glm::vec4(raygen(x, y), 1.0f);
+                accumilated_image[x + y * viewPortData->width] += color;
+                glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
+                acc_color /= (float)viewPortData->frameCount;
+                acc_color = glm::clamp(acc_color, glm::vec4(0.0f), glm::vec4(1.0f));
+                viewPortData->ImageData[x + y * viewPortData->width] = convertColor(acc_color);
+            }
+        });
+        bufferData();
+    }
 
 
     viewPortData->frameCount++;
-    bufferData();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -93,6 +98,13 @@ void PathTracer::resize()
     }
 }
 
+// not every frame but for when we move etc
+void PathTracer::update() {
+    viewPortData->frameCount = 1;
+    accumilated_image.resize(viewPortData->width * viewPortData->height);
+    accumilated_image.clear();
+}
+
 void PathTracer::bufferData()
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
@@ -111,13 +123,13 @@ PathTracer::PayLoad PathTracer::traceRay(Ray ray)
 
     glm::vec3 rayDir = ray.direction;
 
-    for (int i = 0; i < scene->surfaces.size(); i++) {
+    for (int i = 0; i < viewPortData->scene->surfaces.size(); i++) {
 
-        glm::vec3 cameraPos = ray.origin - scene->surfaces[i].position;
+        glm::vec3 cameraPos = ray.origin - viewPortData->scene->surfaces[i].position;
         // Equations to calculate hit on a sphere.
         float a = dot(rayDir, rayDir);
         float b = 2.0f * dot(cameraPos, rayDir);
-        float c = dot(cameraPos, cameraPos) - (scene->surfaces[i].radius * scene->surfaces[i].radius);
+        float c = dot(cameraPos, cameraPos) - (viewPortData->scene->surfaces[i].radius * viewPortData->scene->surfaces[i].radius);
         float disc = b * b - 4.0f * a * c;
 
         if (disc < 0) { 
@@ -128,7 +140,7 @@ PathTracer::PayLoad PathTracer::traceRay(Ray ray)
 
         if (t > 0.0 && t < hitDistance) {
             hitDistance = t;
-            closestSurface = &scene->surfaces[i];
+            closestSurface = &viewPortData->scene->surfaces[i];
         }
 
     }
@@ -173,10 +185,9 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
     glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0); // scene light direction
     glm::vec3 backGroundColor = glm::vec3(0.6f, 0.7f, 0.9f); // background color of scene
     
-    int maxBounce = 5;
     float energy = 1.0;
 
-    for (int i = 0; i < maxBounce; i++) {
+    for (int i = 0; i < viewPortData->bounces; i++) {
         PayLoad payLoad = traceRay(ray);
         if (payLoad.hitDistance < 0) { // If we dont hit anything
             finalColor += backGroundColor * energy;

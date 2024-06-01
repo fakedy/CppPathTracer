@@ -11,9 +11,10 @@ class PathTracer
 {
 public:
 
-    PathTracer(ViewPortData* viewPortData, Camera* camera, Scene* scene);
+    PathTracer(ViewPortData* viewPortData, Camera* camera);
 
     void render();
+    void update(); // when moving camera and such
 
     ViewPortData* viewPortData;
 
