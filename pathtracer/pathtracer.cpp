@@ -4,7 +4,9 @@
 #include <iostream>
 #include <execution>
 #include "Surface.h"
+#include <algorithm>
 
+inline double random_double(float lower, float upper);
 
 PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
 {
@@ -50,8 +52,26 @@ void PathTracer::render()
 
     if (viewPortData->frameCount < 100){ // this is just a pause preventing cpu from heating my room up when idle
         std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
+            glm::vec4 color;
             for (uint32_t x = 0; x < viewPortData->width; x++) {
-                glm::vec4 color = glm::vec4(raygen(x, y), 1.0f);
+                // set true if you want SSAA and horrible fps
+                if (true) {
+
+                    for (size_t xx = 0; xx < 3; xx++)
+                    {
+                        for (size_t yy = 0; yy < 3; yy++)
+                        {
+                            color += glm::vec4(raygen(
+                                std::min(std::max((unsigned long long)0,x+xx-1), (unsigned long long)viewPortData->width-1),
+                                std::min(std::max((unsigned long long)0, y+yy-1), (unsigned long long)viewPortData->height-1)),
+                                1.0f);
+                        }
+                    }
+                    color /= 9;
+                }
+                else {
+                    color = glm::vec4(raygen(x, y), 1.0f);
+                }
                 accumilated_image[x + y * viewPortData->width] += color;
                 glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
                 acc_color /= (float)viewPortData->frameCount;
@@ -183,12 +203,13 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
 
     glm::vec3 finalColor(0.0f); // variable to store the accumilated color from bounces
     glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0); // scene light direction
-    glm::vec3 backGroundColor = glm::vec3(0.6f, 0.7f, 0.9f); // background color of scene
+    glm::vec3 backGroundColor = glm::vec3(0.0f, 0.0f, 0.0f); // background color of scene
     
     float energy = 1.0;
 
     for (int i = 0; i < viewPortData->bounces; i++) {
         PayLoad payLoad = traceRay(ray);
+
         if (payLoad.hitDistance < 0) { // If we dont hit anything
             finalColor += backGroundColor * energy;
             break;
@@ -196,11 +217,15 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
         float lightIntensity = glm::max(dot(payLoad.normal, -lightDir), 0.0f); // dot product between lightdir and the surface normal
         glm::vec3 sphereColor = payLoad.surface->color * lightIntensity;
         finalColor += sphereColor * energy;
+
+
+        finalColor -= payLoad.hitDistance / 50; // makes things darker the further away for fun :)
+
         energy *= 0.5; // Energy decrease on each bounce. Random value and not accurate
         
 
         ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the sphere + offset by normal dir to prevent hitting ourselves
-        glm::vec3 randVec = glm::vec3(getRandFloat(-0.5f, 0.5f), getRandFloat(-0.5f, 0.5f), getRandFloat(-0.5f, 0.5f));
+        glm::vec3 randVec = glm::vec3(random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f));
         ray.direction = glm::reflect(ray.direction, payLoad.normal + payLoad.surface->roughness * randVec);
 
     }
@@ -219,11 +244,12 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
  *
  * @return float between lower and upper bound
  */
-float PathTracer::getRandFloat(float lower, float upper) {
-    float random = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (upper-lower)));
-    random = random + lower;
-    return random;
+double random_double(float lower, float upper) {
+    thread_local std::mt19937 generator(std::random_device{}());
+    std::uniform_real_distribution<double> distribution(lower, upper);
+    return distribution(generator);
 }
+
 
 
 /**
