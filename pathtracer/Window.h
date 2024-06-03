@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <functional>
+
 class Window
 {
 public:
@@ -12,10 +13,13 @@ public:
 	void shutdown();
 	GLFWwindow* getWindow();
 
+
 private:
 
 	void init();
 	GLFWwindow* window;
+
+
 
 };
 

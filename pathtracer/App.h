@@ -7,5 +7,6 @@ public:
 
 private:
 
+	void update();
 };
 

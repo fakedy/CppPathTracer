@@ -2,6 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
+
 Camera::Camera(glm::vec3 position, float fov, uint32_t width, uint32_t height)
 {
 	this->cameraPos = position;
@@ -53,4 +54,6 @@ void Camera::calcDirections()
 		}
 	}
 }
+
+
 

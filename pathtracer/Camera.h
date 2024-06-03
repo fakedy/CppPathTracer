@@ -10,10 +10,6 @@ public:
 	Camera(glm::vec3 position, float fov, uint32_t width, uint32_t height);
 
 	glm::vec3 cameraPos;
-	const glm::mat4& getProj() const { return proj; }
-	const glm::mat4& getInversProj() const { return inverseProj; }
-	const glm::mat4& getViewMatrix() const { return view; }
-	const glm::mat4& getInverseView() const { return inverseView; }
 	const glm::vec3& getPosition() const { return cameraPos; }
 	const std::vector<glm::vec3>& getDirections() const { return directions; }
 
@@ -22,6 +18,11 @@ public:
 
 
 private:
+
+	const glm::mat4& getProj() const { return proj; }
+	const glm::mat4& getInversProj() const { return inverseProj; }
+	const glm::mat4& getViewMatrix() const { return view; }
+	const glm::mat4& getInverseView() const { return inverseView; }
 
 
 	glm::mat4 proj{1.0f};
@@ -47,8 +48,6 @@ private:
 	void calculateView();
 	void calculateProj();
 	void calcDirections();
-
-
 
 };
 

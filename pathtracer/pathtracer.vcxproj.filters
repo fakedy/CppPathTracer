@@ -16,6 +16,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{9334e9ae-5b34-4f6b-b0d3-840a8803bc17}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\EventSystem">
+      <UniqueIdentifier>{3e269a3b-16fa-4299-8b4a-da17ee0d9c19}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -60,6 +63,9 @@
     <ClCompile Include="Sphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KeyHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h">
@@ -90,6 +96,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Sphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
