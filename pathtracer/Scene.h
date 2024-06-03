@@ -23,9 +23,9 @@ public:
         sphere1.radius = 1.0f;
         sphere1.roughness = 0.2f;
 
-        sphere2.name = "Blue Sphere";
+        sphere2.name = "Big Floor Sphere";
         sphere2.position = glm::vec3(0, -101.5, 0);
-        sphere2.color = glm::vec3(0.20, 0.25, 1);
+        sphere2.color = glm::vec3(0.08, 0.08, 0.08);
         sphere2.radius = 100.0f;
         sphere2.roughness = 0.2f;
 

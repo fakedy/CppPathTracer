@@ -1,7 +1,6 @@
 #include "Window.h"
 #include <iostream>
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 Window::Window()
 {
@@ -22,8 +21,9 @@ void Window::init()
         std::cout << "WINDOW CREATION FAILED" << std::endl;
     }
 
-    glfwSetKeyCallback(window, key_callback);
+    //glfwSetKeyCallback(window, key_callback);
     glfwMakeContextCurrent(window);
+    glfwSetWindowUserPointer(window, this);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "GLAD FAILED TO LOAD" << std::endl;
@@ -63,15 +63,6 @@ GLFWwindow* Window::getWindow()
 }
 
 
-// testing some simple input
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
 
 
 

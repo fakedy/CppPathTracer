@@ -1,9 +1,10 @@
 #include "App.h"
-#include <iostream>
 #include "Window.h"
 #include "PathTracer.h"
 #include "UserInterface.h"
 #include "ViewPortData.h"
+#include "KeyHandler.h"
+#include <iostream>
 
 void renderData();
 Window* window = new Window();
@@ -12,26 +13,47 @@ Camera* camera = new Camera(glm::vec3(0,0,6), 45, 1920, 1080); // pos, fov, widt
 PathTracer* pathTracer = new PathTracer(viewPortData, camera);
 UserInterface* UI = new UserInterface(viewPortData);
 
-bool moved = true;
-
 App::App()
 {
+    KeyHandler::setKeyCallback(window->getWindow());
+    
     UI->init(window->getWindow());
     while (!window->windowShouldClose()) { // main loop
 
         window->update(renderData); // main render call
         pathTracer->render();
 
-        if (moved == true) {
-            pathTracer->update();
-            camera->update();
-            moved = false;
-        }
+        update(); // logic
 
         UI->draw();
     }
     UI->shutdown();
     window->shutdown();
+}
+
+void App::update() {
+
+
+    if (KeyHandler::getKeyDown(KeyHandler::A)) {
+        camera->cameraPos += glm::vec3(-0.8, 0, 0);
+        pathTracer->update();
+        camera->update();
+    }
+    else if (KeyHandler::getKeyDown(KeyHandler::D)) {
+        camera->cameraPos += glm::vec3(0.8, 0, 0);
+        pathTracer->update();
+        camera->update();
+    }
+    if (KeyHandler::getKeyDown(KeyHandler::W)) {
+        camera->cameraPos += glm::vec3(0, 0, -0.8);
+        pathTracer->update();
+        camera->update();
+    }
+    else if (KeyHandler::getKeyDown(KeyHandler::S)) {
+        camera->cameraPos += glm::vec3(0, 0, 0.8);
+        pathTracer->update();
+        camera->update();
+    }
 }
 
 

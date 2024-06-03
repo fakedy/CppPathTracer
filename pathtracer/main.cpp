@@ -2,7 +2,7 @@
 
 int main()
 {
-	App *app = new App();
+	App app = App();
 }
 
 

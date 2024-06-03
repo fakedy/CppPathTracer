@@ -55,17 +55,36 @@ void UserInterface::draw()
     ImGui::EndMenuBar();
 
     float colorArray[3];
+    float positionArray[3];
     for (size_t i = 0; i < viewPortData->scene->surfaces.size(); i++)
     {
         Surface &object = viewPortData->scene->surfaces[i];
-        ImGui::Text((object.name + std::to_string(i)).c_str());
+
+        ImGui::Text(object.name.c_str());
+
             colorArray[0] = object.color.r;
             colorArray[1] = object.color.g;
             colorArray[2] = object.color.b;
-        if(ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), colorArray)) { // because imgui use the label as id
+        if(ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), colorArray)) {    // because imgui use the label as id
             object.color = glm::vec3(colorArray[0], colorArray[1], colorArray[2]);     // we cant have the same label for each picker
             viewPortData->shouldReset = true;
         }
+
+            positionArray[0] = object.position.x;
+            positionArray[1] = object.position.y;
+            positionArray[2] = object.position.z;
+        if (ImGui::DragFloat3(("Translation##" + std::to_string(i)).c_str(), positionArray)) {
+            object.position = glm::vec3(positionArray[0], positionArray[1], positionArray[2]);     // we cant have the same label for each picker
+            viewPortData->shouldReset = true;
+        }
+
+        if (ImGui::SliderFloat(("Roughness##" + std::to_string(i)).c_str(), &object.roughness, 0, 1)) {
+            viewPortData->shouldReset = true;
+        }
+        if (ImGui::SliderFloat(("Radius##" + std::to_string(i)).c_str(), &object.radius, 0, 100)) {
+            viewPortData->shouldReset = true;
+        }
+
     }
 
     ImGui::End();
