@@ -27,6 +27,7 @@ public:
         uint32_t frameCount = 1;
         int bounces = 4;
         bool shouldReset = false;
+        bool SSAA = true;
 
         // Starting to realise having this as just some data storage is inconvenient when wanting to make calls
 

@@ -55,9 +55,11 @@ void PathTracer::render()
         std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
             glm::vec4 color;
             for (uint32_t x = 0; x < viewPortData->width; x++) {
+                color = glm::vec4(0); // reset the color vector every new pixel
                 // set true if you want SSAA and horrible fps
-                if (true) {
-
+                if (viewPortData->SSAA == true) {
+                    
+                    // will cast a ray in a 3x3 pattern around pixel to get the average of all of them
                     for (size_t xx = 0; xx < 3; xx++)
                     {
                         for (size_t yy = 0; yy < 3; yy++)
@@ -68,7 +70,7 @@ void PathTracer::render()
                                 1.0f);
                         }
                     }
-                    color /= 9;
+                    color /= 9; // we divide to get the average of our pixels
                 }
                 else {
                     color = glm::vec4(raygen(x, y), 1.0f);
@@ -77,7 +79,7 @@ void PathTracer::render()
                 glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
                 acc_color /= (float)viewPortData->frameCount;
                 acc_color = glm::clamp(acc_color, glm::vec4(0.0f), glm::vec4(1.0f));
-                viewPortData->ImageData[x + y * viewPortData->width] = convertColor(acc_color);
+                viewPortData->ImageData[x + y * viewPortData->width] = convertColor(acc_color); // store our color in the output in 255 range
             }
         });
         bufferData();
@@ -198,8 +200,8 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
 
     glm::vec3 cameraPos = camera->getPosition();
     glm::vec3 rayDir = camera->getDirections()[x + y * viewPortData->width];
-    Ray ray;
-    Ray shadowRay;
+    Ray ray; // general ray
+    Ray shadowRay; // ray info for calculating shadows
     ray.origin = cameraPos;
     ray.direction = rayDir;
 
@@ -217,13 +219,8 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
             finalColor += backGroundColor * energy;
             break;
         }
-       
-
-
-        //finalColor -= payLoad.hitDistance / 50; // makes things darker the further away for fun :)
-
-        
-
+      
+ 
         ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the sphere + offset by normal dir to prevent hitting ourselves
         glm::vec3 randVec = glm::vec3(random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f));
         ray.direction = glm::reflect(ray.direction, payLoad.normal + payLoad.surface->roughness * randVec);
@@ -232,6 +229,7 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
         shadowRay.direction = -lightDir;
         PayLoad shadowLoad = traceRay(shadowRay);
 
+        // check if we are in shadow or not
         if (shadowLoad.hitDistance < 0) {
             float lightIntensity = glm::max(dot(payLoad.normal, -lightDir), 0.0f); // dot product between lightdir and the surface normal
             glm::vec3 sphereColor = payLoad.surface->color * lightIntensity;
@@ -260,8 +258,6 @@ double random_double(float lower, float upper) {
     std::uniform_real_distribution<double> distribution(lower, upper);
     return distribution(generator);
 }
-
-
 
 /**
 * @brief Converts vec4 values from 0 to 1 space to 0 to 255

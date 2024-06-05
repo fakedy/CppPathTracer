@@ -43,6 +43,10 @@ void UserInterface::draw()
     ImGui::Text("Device: CPU");
     ImGui::SliderInt("Bounces", &viewPortData->bounces, 1, 4);
 
+    if (ImGui::Checkbox("SSAA", &viewPortData->SSAA)) {
+        viewPortData->shouldReset = true;
+    }
+
     if(ImGui::Button("Reset")) {
         viewPortData->shouldReset = true;
     }
