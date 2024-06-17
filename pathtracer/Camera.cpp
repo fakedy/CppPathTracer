@@ -39,9 +39,9 @@ void Camera::calculateProj()
 
 
 
-glm::vec3 Camera::calcDirection(int x, int y, double offsetX, double offsetY) {
+glm::vec3 Camera::calcDirection(double x, double y) {
 
-	glm::vec2 coord = glm::vec2((float)(x+offsetX) / width, (float)(y+offsetY) / height); // translate pixel coordinate to clip space coord [0, 1]
+	glm::vec2 coord = glm::vec2((double)(x) / width, (double)(y) / height); // translate pixel coordinate to clip space coord [0, 1]
 	coord = coord * 2.0f - 1.0f; // remap the coordinates to [-1, 1]
 	glm::vec4 target = inverseProj * glm::vec4(coord.x, coord.y, 1, 1);
 	glm::vec3 rayDir = glm::vec3(inverseView * glm::vec4(glm::normalize(glm::vec3(target) / target.w), 0)); // world space

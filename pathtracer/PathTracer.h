@@ -48,7 +48,7 @@ private:
 
     float getRandFloat(float lower, float upper);
 
-    glm::vec3 raygen(uint32_t x, uint32_t y);
+    glm::vec3 raygen(double x, double y);
     uint32_t convertColor(const glm::vec4& color);
 };
 
