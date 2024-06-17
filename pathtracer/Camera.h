@@ -15,6 +15,7 @@ public:
 
 	void resize(uint32_t width, uint32_t height);
 	void update();
+	glm::vec3 calcDirection(int x, int y, double offsetX, double offsetY);
 
 
 private:
@@ -47,7 +48,6 @@ private:
 
 	void calculateView();
 	void calculateProj();
-	void calcDirections();
 
 };
 

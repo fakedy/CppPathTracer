@@ -55,26 +55,7 @@ void PathTracer::render()
         std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
             glm::vec4 color;
             for (uint32_t x = 0; x < viewPortData->width; x++) {
-                color = glm::vec4(0); // reset the color vector every new pixel
-                // set true if you want SSAA and horrible fps
-                if (viewPortData->SSAA == true) {
-                    
-                    // will cast a ray in a 3x3 pattern around pixel to get the average of all of them
-                    for (size_t xx = 0; xx < 3; xx++)
-                    {
-                        for (size_t yy = 0; yy < 3; yy++)
-                        {
-                            color += glm::vec4(raygen(
-                                std::min(std::max((unsigned long long)0,x+xx-1), (unsigned long long)viewPortData->width-1),
-                                std::min(std::max((unsigned long long)0, y+yy-1), (unsigned long long)viewPortData->height-1)),
-                                1.0f);
-                        }
-                    }
-                    color /= 9; // we divide to get the average of our pixels
-                }
-                else {
-                    color = glm::vec4(raygen(x, y), 1.0f);
-                }
+                color = glm::vec4(raygen(x, y), 1.0f);
 
                 accumilated_image[x + y * viewPortData->width] += color;
                 glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
@@ -189,47 +170,101 @@ PathTracer::PayLoad PathTracer::miss(Ray ray)
 
 glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
 
-    glm::vec3 cameraPos = camera->getPosition();
-    glm::vec3 rayDir = camera->getDirections()[x + y * viewPortData->width];
-    Ray ray; // general ray
-    Ray shadowRay; // ray info for calculating shadows
-    ray.origin = cameraPos;
-    ray.direction = rayDir;
+    // clean this stuff up soon
 
     glm::vec3 finalColor(0.0f); // variable to store the accumilated color from bounces
-    glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0); // scene light direction
-    glm::vec3 backGroundColor = glm::vec3(0.8f, 0.8f, 0.8f); // background color of scene
-    
-    float energy = 1.0;
 
-    for (int i = 0; i < viewPortData->bounces; i++) {
-        PayLoad payLoad = traceRay(ray);
+    if (viewPortData->SSAA == true) {
+        for (int i = 0; i < 4; i++) {
+            glm::vec3 rayDir = camera->calcDirection(x, y, random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f));
+            glm::vec3 cameraPos = camera->getPosition();
+
+            Ray ray; // general ray
+            Ray shadowRay; // ray info for calculating shadows
+            ray.origin = cameraPos;
+            ray.direction = rayDir;
+            glm::vec3 accumilatedColor(0.0f);
+            glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0); // scene light direction
+            glm::vec3 backGroundColor = glm::vec3(0.8f, 0.8f, 0.8f); // background color of scene
+
+            float energy = 1.0;
+
+            for (int i = 0; i < viewPortData->bounces; i++) {
+                PayLoad payLoad = traceRay(ray);
 
 
-        if (payLoad.hitDistance < 0) { // If we dont hit anything
-            finalColor += backGroundColor * energy;
-            break;
+                if (payLoad.hitDistance < 0) { // If we dont hit anything
+                    accumilatedColor += backGroundColor * energy;
+                    break;
+                }
+
+
+                ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the surface + offset by normal dir to prevent hitting ourselves
+                glm::vec3 randVec = glm::vec3(random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f));
+                ray.direction = glm::reflect(ray.direction, payLoad.normal + payLoad.surface->roughness * randVec);
+
+                shadowRay.origin = ray.origin; // shadow origin is where our ray just hit
+                shadowRay.direction = -lightDir; // because light is pointing towards scene we reverse to go towards the light instead
+                PayLoad shadowLoad = traceRay(shadowRay);
+
+                // check if we are in shadow or not
+                if (shadowLoad.hitDistance < 0) {
+                    float lightIntensity = glm::max(dot(payLoad.normal, -lightDir), 0.0f); // dot product between lightdir and the surface normal
+                    glm::vec3 sphereColor = payLoad.surface->color * lightIntensity; // the surface color multiplied by the intensity on that spot
+                    accumilatedColor += sphereColor * energy;
+                }
+
+                energy *= 0.5; // Energy decrease on each bounce. Random value and not accurate
+            }
+            finalColor += accumilatedColor;
         }
-      
- 
-        ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the surface + offset by normal dir to prevent hitting ourselves
-        glm::vec3 randVec = glm::vec3(random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f));
-        ray.direction = glm::reflect(ray.direction, payLoad.normal + payLoad.surface->roughness * randVec);
 
-        shadowRay.origin = ray.origin; // shadow origin is where our ray just hit
-        shadowRay.direction = -lightDir; // because light is pointing towards scene we reverse to go towards the light instead
-        PayLoad shadowLoad = traceRay(shadowRay);
-
-        // check if we are in shadow or not
-        if (shadowLoad.hitDistance < 0) {
-            float lightIntensity = glm::max(dot(payLoad.normal, -lightDir), 0.0f); // dot product between lightdir and the surface normal
-            glm::vec3 sphereColor = payLoad.surface->color * lightIntensity; // the surface color multiplied by the intensity on that spot
-            finalColor += sphereColor * energy;
-        }
-
-        energy *= 0.5; // Energy decrease on each bounce. Random value and not accurate
+        finalColor /= 4;
     }
-    
+    else {
+
+        glm::vec3 rayDir = camera->calcDirection(x, y, 0, 0);
+        glm::vec3 cameraPos = camera->getPosition();
+
+        Ray ray; // general ray
+        Ray shadowRay; // ray info for calculating shadows
+        ray.origin = cameraPos;
+        ray.direction = rayDir;
+        glm::vec3 accumilatedColor(0.0f);
+        glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0); // scene light direction
+        glm::vec3 backGroundColor = glm::vec3(0.8f, 0.8f, 0.8f); // background color of scene
+
+        float energy = 1.0;
+
+        for (int i = 0; i < viewPortData->bounces; i++) {
+            PayLoad payLoad = traceRay(ray);
+
+
+            if (payLoad.hitDistance < 0) { // If we dont hit anything
+                accumilatedColor += backGroundColor * energy;
+                break;
+            }
+
+
+            ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the surface + offset by normal dir to prevent hitting ourselves
+            glm::vec3 randVec = glm::vec3(random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f));
+            ray.direction = glm::reflect(ray.direction, payLoad.normal + payLoad.surface->roughness * randVec);
+
+            shadowRay.origin = ray.origin; // shadow origin is where our ray just hit
+            shadowRay.direction = -lightDir; // because light is pointing towards scene we reverse to go towards the light instead
+            PayLoad shadowLoad = traceRay(shadowRay);
+
+            // check if we are in shadow or not
+            if (shadowLoad.hitDistance < 0) {
+                float lightIntensity = glm::max(dot(payLoad.normal, -lightDir), 0.0f); // dot product between lightdir and the surface normal
+                glm::vec3 sphereColor = payLoad.surface->color * lightIntensity; // the surface color multiplied by the intensity on that spot
+                accumilatedColor += sphereColor * energy;
+            }
+
+            energy *= 0.5; // Energy decrease on each bounce. Random value and not accurate
+        }
+        finalColor = accumilatedColor;
+    }
     return finalColor;
 }
 
