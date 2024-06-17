@@ -20,10 +20,10 @@ App::App()
     UI->init(window->getWindow());
     while (!window->windowShouldClose()) { // main loop
 
+        update(); // logic
         window->update(renderData); // main render call
         pathTracer->render();
 
-        update(); // logic
 
         UI->draw();
     }

@@ -43,6 +43,10 @@ void UserInterface::draw()
     ImGui::Text("Device: CPU");
     ImGui::SliderInt("Bounces", &viewPortData->bounces, 1, 4);
 
+    if (ImGui::Checkbox("SSAA", &viewPortData->SSAA)) {
+        viewPortData->shouldReset = true;
+    }
+
     if(ImGui::Button("Reset")) {
         viewPortData->shouldReset = true;
     }
@@ -58,7 +62,7 @@ void UserInterface::draw()
     float positionArray[3];
     for (size_t i = 0; i < viewPortData->scene->surfaces.size(); i++)
     {
-        Surface &object = viewPortData->scene->surfaces[i];
+        Surface &object = *viewPortData->scene->surfaces[i];
 
         ImGui::Text(object.name.c_str());
 
