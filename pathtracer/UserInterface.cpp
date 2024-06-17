@@ -62,7 +62,7 @@ void UserInterface::draw()
     float positionArray[3];
     for (size_t i = 0; i < viewPortData->scene->surfaces.size(); i++)
     {
-        Surface &object = viewPortData->scene->surfaces[i];
+        Surface &object = *viewPortData->scene->surfaces[i];
 
         ImGui::Text(object.name.c_str());
 

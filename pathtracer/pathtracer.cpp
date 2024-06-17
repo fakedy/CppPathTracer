@@ -75,6 +75,7 @@ void PathTracer::render()
                 else {
                     color = glm::vec4(raygen(x, y), 1.0f);
                 }
+
                 accumilated_image[x + y * viewPortData->width] += color;
                 glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
                 acc_color /= (float)viewPortData->frameCount;
@@ -86,11 +87,11 @@ void PathTracer::render()
     }
 
 
-    viewPortData->frameCount++;
+    viewPortData->frameCount++; // increment framecount
 
     auto currentTime = std::chrono::high_resolution_clock::now();
 
-    viewPortData->elapsed = currentTime - startTime;
+    viewPortData->elapsed = currentTime - startTime; // calculate the time a frame took to render
 }
 
 void PathTracer::resize()
@@ -141,32 +142,22 @@ void PathTracer::bufferData()
 
 PathTracer::PayLoad PathTracer::traceRay(Ray ray)
 {
-    float hitDistance = 1000000000; // high value to allow algorithm to find a min value
+    float hitDistance = 20000; // view distance
     Surface* closestSurface = nullptr;
 
-    glm::vec3 rayDir = ray.direction;
+    for (auto& surfacePtr : viewPortData->scene->surfaces) {
 
-    for (int i = 0; i < viewPortData->scene->surfaces.size(); i++) {
+        Surface& surface = *surfacePtr;
 
-        glm::vec3 cameraPos = ray.origin - viewPortData->scene->surfaces[i].position;
-        // Equations to calculate hit on a sphere.
-        float a = dot(rayDir, rayDir);
-        float b = 2.0f * dot(cameraPos, rayDir);
-        float c = dot(cameraPos, cameraPos) - (viewPortData->scene->surfaces[i].radius * viewPortData->scene->surfaces[i].radius);
-        float disc = b * b - 4.0f * a * c;
+        
+        float hitdist = surface.intersection(ray);
 
-        if (disc < 0) { 
-            continue;
+        if (hitdist > 0.0 && hitdist < hitDistance) {
+            hitDistance = hitdist;
+            closestSurface = &surface;
         }
-  
-        float t = ((-b - sqrt(disc)) / (2.0f * a));
-
-        if (t > 0.0 && t < hitDistance) {
-            hitDistance = t;
-            closestSurface = &viewPortData->scene->surfaces[i];
-        }
-
     }
+    
 
     if (closestSurface == nullptr) {
         return miss(ray);
@@ -221,18 +212,18 @@ glm::vec3 PathTracer::raygen(uint32_t x, uint32_t y) {
         }
       
  
-        ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the sphere + offset by normal dir to prevent hitting ourselves
+        ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the surface + offset by normal dir to prevent hitting ourselves
         glm::vec3 randVec = glm::vec3(random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f), random_double(-0.5f, 0.5f));
         ray.direction = glm::reflect(ray.direction, payLoad.normal + payLoad.surface->roughness * randVec);
 
-        shadowRay.origin = ray.origin;
-        shadowRay.direction = -lightDir;
+        shadowRay.origin = ray.origin; // shadow origin is where our ray just hit
+        shadowRay.direction = -lightDir; // because light is pointing towards scene we reverse to go towards the light instead
         PayLoad shadowLoad = traceRay(shadowRay);
 
         // check if we are in shadow or not
         if (shadowLoad.hitDistance < 0) {
             float lightIntensity = glm::max(dot(payLoad.normal, -lightDir), 0.0f); // dot product between lightdir and the surface normal
-            glm::vec3 sphereColor = payLoad.surface->color * lightIntensity;
+            glm::vec3 sphereColor = payLoad.surface->color * lightIntensity; // the surface color multiplied by the intensity on that spot
             finalColor += sphereColor * energy;
         }
 
