@@ -19,6 +19,15 @@
     <Filter Include="Header Files\EventSystem">
       <UniqueIdentifier>{3e269a3b-16fa-4299-8b4a-da17ee0d9c19}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Surfaces">
+      <UniqueIdentifier>{1ac6841f-b805-4d58-934d-513b987a56d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Surfaces">
+      <UniqueIdentifier>{2f8d532e-1e91-4ffa-b4f5-6cfedf5242d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Materials">
+      <UniqueIdentifier>{58e9d5ad-5183-4ee3-83d0-a3d8baf2299b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -60,11 +69,14 @@
     <ClCompile Include="PathTracer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Sphere.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="KeyHandler.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>Source Files\Surfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="Box.cpp">
+      <Filter>Source Files\Surfaces</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -92,14 +104,20 @@
     <ClInclude Include="Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Surface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Sphere.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="KeyHandler.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Surface.h">
+      <Filter>Header Files\Surfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>Header Files\Surfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Box.h">
+      <Filter>Header Files\Surfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Header Files\Materials</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -36,12 +36,18 @@ void UserInterface::draw()
     ImGui::PopStyleVar();
 
     ImGui::Begin("Settings");
-    ImGui::Text("Frame time: %f ms", viewPortData->elapsed.count());
-    ImGui::Text("Frame rate: %f fps", 1000 / viewPortData->elapsed.count());
+    ImGui::Text("Frame time: %f ms", viewPortData->frameTime.count());
+    ImGui::Text("Frame rate: %f fps", 1000 / viewPortData->frameTime.count());
     ImGui::Text("Frame count: %i", viewPortData->frameCount);
     ImGui::Text("Rendering resolution: %ix%i ", viewPortData->image_width, viewPortData->image_height);
     ImGui::Text("Device: CPU");
-    ImGui::SliderInt("Bounces", &viewPortData->bounces, 1, 4);
+    if (ImGui::SliderInt("Bounces", &viewPortData->bounces, 1, 4)) {
+        viewPortData->shouldReset = true;
+    }
+
+    if (ImGui::SliderFloat("Gamma", &viewPortData->gammaValue, 0.001, 10)) {
+        viewPortData->shouldReset = true;
+    }
 
     if (ImGui::Checkbox("SSAA", &viewPortData->SSAA)) {
         viewPortData->shouldReset = true;

@@ -23,6 +23,7 @@ PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
         heightIterator[i] = i;
     }
     init();
+    startTime = std::chrono::high_resolution_clock::now();
 }
 
 
@@ -41,7 +42,7 @@ void PathTracer::init()
 
 void PathTracer::render()
 {
-    auto startTime = std::chrono::high_resolution_clock::now();
+    auto frameStartTime = std::chrono::high_resolution_clock::now();
     // If we need to resize the viewport window
     if (!viewPortData->ImageData || viewPortData->image_width != viewPortData->width || viewPortData->image_height != viewPortData->height) {
         resize();
@@ -76,6 +77,7 @@ void PathTracer::render()
             }
         });
         bufferData();
+        
     }
 
 
@@ -83,7 +85,8 @@ void PathTracer::render()
 
     auto currentTime = std::chrono::high_resolution_clock::now();
 
-    viewPortData->elapsed = currentTime - startTime; // calculate the time a frame took to render
+    viewPortData->frameTime = currentTime - frameStartTime; // calculate the time a frame took to render
+    viewPortData->elapsed = currentTime - startTime;
 }
 
 void PathTracer::resize()
@@ -185,7 +188,7 @@ glm::vec3 PathTracer::raygen(double x, double y) {
     // too much duplicate code in SSAA if statement
 
     glm::vec3 finalColor(0.0f); // variable to store the accumilated color from bounces
-    glm::vec3 backGroundColor = glm::vec3(0.3f, 0.3f, 0.3f); // background color of scene
+    glm::vec3 backGroundColor = glm::vec3(0.1f, 0.1f, 0.1f); // background color of scene
 
     glm::vec3 rayDir = camera->calcDirection(x, y);
     glm::vec3 cameraPos = camera->getPosition();
@@ -193,9 +196,8 @@ glm::vec3 PathTracer::raygen(double x, double y) {
     Ray ray; // general ray
     Ray shadowRay; // ray info for calculating shadows
     ray.origin = cameraPos;
-    ray.direction = rayDir;
-    glm::vec3 lightDir = glm::vec3(-1.0, -1.0, -1.0); // scene light direction
-
+    ray.direction = glm::normalize(rayDir);
+    glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0, -1.0, -1.0)); // scene light direction
     float energy = 1.0;
 
     for (int i = 0; i < viewPortData->bounces; i++) {
@@ -211,7 +213,7 @@ glm::vec3 PathTracer::raygen(double x, double y) {
         ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the surface + offset by normal dir to prevent hitting ourselves
         glm::vec3 randVec = glm::vec3(random_double(-1.0f, 1.0f), random_double(-1.0f, 1.0f), random_double(-1.0f, 1.0f));
         // while the vector is outside the unit sphere
-        while ((randVec.x*randVec.x) + (randVec.y * randVec.y) + (randVec.z * randVec.z) > 1) {
+        while (glm::length2(randVec) > 1) {
             randVec = glm::vec3(random_double(-1.0f, 1.0f), random_double(-1.0f, 1.0f), random_double(-1.0f, 1.0f));
         }
         
@@ -219,10 +221,12 @@ glm::vec3 PathTracer::raygen(double x, double y) {
         if (glm::dot(randVec, payLoad.normal) < 0) { // if dot product is negative its pointing in wrong direction
             randVec = -randVec;
         }
-        ray.direction = glm::reflect(ray.direction, payLoad.normal + payLoad.surface->roughness * randVec);
+
+        glm::vec3 reflectDir = glm::reflect(ray.direction, payLoad.normal);
+        ray.direction = glm::normalize(reflectDir + payLoad.surface->roughness * randVec);
 
         shadowRay.origin = ray.origin; // shadow origin is where our ray just hit
-        shadowRay.direction = -lightDir; // because light is pointing towards scene we reverse to go towards the light instead
+        shadowRay.direction = -lightDir; // because light is pointing towards scene we reverse to go towards the sun instead
         PayLoad shadowLoad = traceRay(shadowRay);
 
         // check if we are in shadow or not
@@ -232,7 +236,7 @@ glm::vec3 PathTracer::raygen(double x, double y) {
             finalColor += sphereColor * energy;
         }
 
-        energy *= 0.5; // Energy decrease on each bounce. Random value and not accurate
+        energy *= 0.32f; // Energy decrease on each bounce. Random value and not accurate
     }
     
     return finalColor;
@@ -263,9 +267,11 @@ double random_double(float lower, float upper) {
 */
 uint32_t PathTracer::convertColor(const glm::vec4& color) {
 
-    uint8_t r = static_cast<uint8_t>(color.r * 255.0f);
-    uint8_t g = static_cast<uint8_t>(color.g * 255.0f);
-    uint8_t b = static_cast<uint8_t>(color.b * 255.0f);
+    // gamma correction sqrt
+    float gammaValue = viewPortData->gammaValue;
+    uint8_t r = static_cast<uint8_t>(glm::pow(color.r, 1 / gammaValue) * 255.0f);
+    uint8_t g = static_cast<uint8_t>(glm::pow(color.g, 1 / gammaValue) * 255.0f);
+    uint8_t b = static_cast<uint8_t>(glm::pow(color.b, 1 / gammaValue) * 255.0f);
     uint8_t a = static_cast<uint8_t>(color.a * 255.0f);
 
     // bitshifts values into a uint32_t

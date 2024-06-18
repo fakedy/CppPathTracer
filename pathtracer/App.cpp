@@ -23,9 +23,9 @@ App::App()
         update(); // logic
         window->update(renderData); // main render call
         pathTracer->render();
-
-
         UI->draw();
+        
+
     }
     UI->shutdown();
     window->shutdown();

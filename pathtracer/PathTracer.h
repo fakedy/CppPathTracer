@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 #include "Camera.h"
 #include <chrono>
 #include "ViewPortData.h"
@@ -41,6 +42,7 @@ private:
 
     std::vector<glm::vec4> accumilated_image;
     std::vector<uint32_t> widthIterator, heightIterator;
+    std::chrono::steady_clock::time_point startTime;
 
     PayLoad traceRay(Ray ray);
     PayLoad closestHit(Ray ray, float hitDistance, Surface* closestSurface);
