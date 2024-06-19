@@ -52,7 +52,7 @@ void PathTracer::render()
         viewPortData->shouldReset = false;
     }
 
-    if (viewPortData->frameCount < 1000){ // this is just a pause preventing cpu from heating my room up when idle
+    if (viewPortData->frameCount < 100000){ // this is just a pause preventing cpu from heating my room up when idle
         std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
             for (uint32_t x = 0; x < viewPortData->width; x++) {
             glm::vec4 color = glm::vec4(0.0f);
@@ -187,7 +187,7 @@ glm::vec3 PathTracer::raygen(double x, double y) {
     // clean this stuff up soon
     // too much duplicate code in SSAA if statement
 
-    glm::vec3 finalColor(0.0f); // variable to store the accumilated color from bounces
+    glm::vec3 light(0.0f); // variable to store the accumilated color from bounces
     glm::vec3 backGroundColor = glm::vec3(0.0f, 0.0f, 0.0f); // background color of scene
 
     glm::vec3 rayDir = camera->calcDirection(x, y);
@@ -197,14 +197,13 @@ glm::vec3 PathTracer::raygen(double x, double y) {
     Ray shadowRay; // ray info for calculating shadows
     ray.origin = cameraPos;
     ray.direction = glm::normalize(rayDir);
-    glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0, -1.0, -1.0)); // scene light direction
-    float lightStrength = 0.4f;
-    float energy = 1.0;
+    glm::vec3 energy = glm::vec3(1.0f);
+
     for (int i = 0; i < viewPortData->bounces; i++) {
         PayLoad payLoad = traceRay(ray);
 
         if (payLoad.hitDistance < 0) { // If we dont hit anything
-            finalColor += backGroundColor * energy;
+            light += backGroundColor * energy;
             break;
         }
 
@@ -220,33 +219,16 @@ glm::vec3 PathTracer::raygen(double x, double y) {
             randVec = -randVec;
         }
 
-        glm::vec3 reflectDir = glm::reflect(ray.direction, payLoad.normal);
-        ray.direction = glm::normalize(reflectDir + viewPortData->scene->materials.at(payLoad.surface->materialIndex)->roughness * randVec);
+        const std::shared_ptr<Material> material = viewPortData->scene->materials[payLoad.surface->materialIndex];
+        glm::vec3 perturbedNormal = (payLoad.normal + material->roughness * randVec);
+        ray.direction = glm::normalize(glm::reflect(ray.direction, perturbedNormal));
 
-        // to simulate soft shadows we trace a ray towards the sun at different samples
-        int unblockedShadow = 0;
-        shadowRay.origin = ray.origin; // shadow origin is where our ray just hit
-        int shadowRays = 2;
-        for (int i = 0; i < shadowRays; i++) {
-            shadowRay.direction = -lightDir + glm::vec3(random_double(-0.01, 0.01), random_double(-0.01, 0.01), random_double(-0.01, 0.01)); // because light is pointing towards scene we reverse to go towards the sun instead
-            shadowRay.direction = glm::normalize(shadowRay.direction);
-            PayLoad shadowLoad = traceRay(shadowRay);
-            if (shadowLoad.hitDistance < 0) {
-                unblockedShadow++;
-            }
 
-        }
-
-        float shadowFactor = (float)unblockedShadow / shadowRays;
-
-        float lightIntensity = glm::max(glm::dot(payLoad.normal, -lightDir), 0.0f)*lightStrength; // dot product between lightdir and the surface normal
-        glm::vec3 sphereColor = viewPortData->scene->materials.at(payLoad.surface->materialIndex)->albedo * lightIntensity; // the surface color multiplied by the intensity on that spot
-        finalColor += sphereColor * energy * shadowFactor;
-
-        energy *= 0.5f; // Energy decrease on each bounce. Random value and not accurate
+        light += material->getEmission() * energy;
+        energy *= material->albedo;
     }
     
-    return finalColor;
+    return light;
 }
 
 
@@ -274,7 +256,7 @@ double random_double(float lower, float upper) {
 */
 uint32_t PathTracer::convertColor(const glm::vec4& color) {
 
-    // gamma correction sqrt(x) or (glm::pow(color.r, 1 / gammaValue)
+    // gamma correction approx sqrt(x) or (glm::pow(color.r, 1 / gammaValue)
 
     float gammaValue = viewPortData->gammaValue;
     uint8_t r = static_cast<uint8_t>(glm::pow(color.r, 1 / gammaValue) * 255.0f);

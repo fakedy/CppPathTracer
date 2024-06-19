@@ -69,7 +69,7 @@ void UserInterface::settingsPanel()
     ImGui::Text("Frame count: %i", viewPortData->frameCount);
     ImGui::Text("Rendering resolution: %ix%i ", viewPortData->image_width, viewPortData->image_height);
     ImGui::Text("Device: CPU");
-    if (ImGui::SliderInt("Bounces", &viewPortData->bounces, 1, 4)) {
+    if (ImGui::SliderInt("Bounces", &viewPortData->bounces, 1, 100)) {
         viewPortData->shouldReset = true;
     }
 

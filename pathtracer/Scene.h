@@ -41,9 +41,11 @@ public:
         material3->roughness = 0.02f;
         material3->metallic = 0.0f;
 
-        material4->albedo = glm::vec3(0.8, 0.1, 0.1);
-        material4->roughness = 0.2f;
+        material4->albedo = glm::vec3(1.0, 1.0, 1.0);
+        material4->roughness = 1.0f;
         material4->metallic = 0.0f;
+        material4->emissionColor = glm::vec3(1.0, 1.0, 1.0);
+        material4->emissionPower = 20.0f;
 
         material5->albedo = glm::vec3(0.1, 0.3, 0.5);
         material5->roughness = 0.2f;
