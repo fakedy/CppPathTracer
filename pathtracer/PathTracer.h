@@ -6,7 +6,6 @@
 #include <chrono>
 #include "ViewPortData.h"
 #include "Ray.h"
-#include "Scene.h"
 
 class PathTracer
 {
@@ -31,7 +30,6 @@ private:
     };
 
     Camera* camera;
-    Scene* scene;
 
     GLuint PBO;
 

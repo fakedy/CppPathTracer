@@ -9,9 +9,9 @@ class Surface
 public:
     std::string name; 
     glm::vec3 position;
-    glm::vec3 color;
     float radius;
-    float roughness;
+
+    int materialIndex = 0;
 
     virtual float intersection(Ray ray) const = 0;
 

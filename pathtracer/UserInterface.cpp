@@ -3,6 +3,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include <memory>
 
 // made for opengl/glfw
 
@@ -35,6 +36,33 @@ void UserInterface::draw()
     ImGui::End();
     ImGui::PopStyleVar();
 
+    UserInterface::settingsPanel();
+
+    UserInterface::sceneViewer();
+
+    UserInterface::objectPanel();
+    
+
+   
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void UserInterface::shutdown()
+{
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
+void UserInterface::onResize()
+{
+
+}
+
+void UserInterface::settingsPanel()
+{
     ImGui::Begin("Settings");
     ImGui::Text("Frame time: %f ms", viewPortData->frameTime.count());
     ImGui::Text("Frame rate: %f fps", 1000 / viewPortData->frameTime.count());
@@ -53,12 +81,15 @@ void UserInterface::draw()
         viewPortData->shouldReset = true;
     }
 
-    if(ImGui::Button("Reset")) {
+    if (ImGui::Button("Reset")) {
         viewPortData->shouldReset = true;
     }
 
     ImGui::End();
+}
 
+void UserInterface::sceneViewer()
+{
     ImGui::Begin("Scene", NULL, ImGuiWindowFlags_MenuBar);
     ImGui::BeginMenuBar();
     ImGui::Text("Scene");
@@ -66,51 +97,66 @@ void UserInterface::draw()
 
     float colorArray[3];
     float positionArray[3];
+
     for (size_t i = 0; i < viewPortData->scene->surfaces.size(); i++)
     {
-        Surface &object = *viewPortData->scene->surfaces[i];
+        Surface& object = *viewPortData->scene->surfaces[i];
+        int materialIndex = object.materialIndex;
+        std::shared_ptr<Material> material = viewPortData->scene->materials.at(materialIndex);
 
         ImGui::Text(object.name.c_str());
 
-            colorArray[0] = object.color.r;
-            colorArray[1] = object.color.g;
-            colorArray[2] = object.color.b;
-        if(ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), colorArray)) {    // because imgui use the label as id
-            object.color = glm::vec3(colorArray[0], colorArray[1], colorArray[2]);     // we cant have the same label for each picker
+        if (ImGui::Button(("Material##" + std::to_string(i)).c_str())) {
+            ImGui::OpenPopup(("Materials##" + std::to_string(i)).c_str());
+        }
+
+        ImGui::SameLine();
+        ImGui::Text(("material: " + std::to_string(materialIndex)).c_str());
+        if (ImGui::BeginPopup(("Materials##" + std::to_string(i)).c_str())) {
+            ImGui::Text("Materials");
+            ImGui::Separator;
+            for (int i = 0; i < viewPortData->scene->materials.size(); i++) {
+                if (ImGui::Selectable(std::to_string(i).c_str())) {
+                    object.materialIndex = i;
+                    viewPortData->shouldReset = true;
+                }
+            }
+            ImGui::EndPopup();
+        }
+
+
+        colorArray[0] = material->albedo.r;
+        colorArray[1] = material->albedo.g;
+        colorArray[2] = material->albedo.b;
+
+        if (ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), colorArray)) {    // because imgui use the label as id
+            material->albedo = glm::vec3(colorArray[0], colorArray[1], colorArray[2]);     // we cant have the same label for each picker
             viewPortData->shouldReset = true;
         }
 
-            positionArray[0] = object.position.x;
-            positionArray[1] = object.position.y;
-            positionArray[2] = object.position.z;
+        positionArray[0] = object.position.x;
+        positionArray[1] = object.position.y;
+        positionArray[2] = object.position.z;
         if (ImGui::DragFloat3(("Translation##" + std::to_string(i)).c_str(), positionArray)) {
             object.position = glm::vec3(positionArray[0], positionArray[1], positionArray[2]);     // we cant have the same label for each picker
             viewPortData->shouldReset = true;
         }
 
-        if (ImGui::SliderFloat(("Roughness##" + std::to_string(i)).c_str(), &object.roughness, 0, 1)) {
+        if (ImGui::SliderFloat(("Roughness##" + std::to_string(i)).c_str(), &material->roughness, 0, 1)) {
             viewPortData->shouldReset = true;
         }
         if (ImGui::SliderFloat(("Radius##" + std::to_string(i)).c_str(), &object.radius, 0, 100)) {
             viewPortData->shouldReset = true;
         }
-
+        ImGui::Separator();
     }
 
     ImGui::End();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void UserInterface::shutdown()
+void UserInterface::objectPanel()
 {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-}
+    ImGui::Begin("Object");
 
-void UserInterface::onResize()
-{
-
+    ImGui::End();
 }

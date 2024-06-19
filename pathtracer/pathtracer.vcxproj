@@ -163,8 +163,11 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="Box.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Dialectric.h" />
     <ClInclude Include="KeyHandler.h" />
+    <ClInclude Include="Lambertian.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="Metallic.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sphere.h" />

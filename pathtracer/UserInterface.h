@@ -22,5 +22,11 @@ private:
 
 	ViewPortData* viewPortData;
 
+	void settingsPanel();
+
+	void objectPanel();
+	
+	void sceneViewer();
+
 };
 
