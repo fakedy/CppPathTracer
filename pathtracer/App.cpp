@@ -28,7 +28,7 @@ App::App()
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto elapsed = currentTime - lastTime; 
         lastTime = currentTime;
-        update(elapsed.count()/1000000000); // logic
+        update(elapsed.count()/10000000); // logic
         UI->draw();
         window->update(renderData); // main render call
         
@@ -38,7 +38,7 @@ App::App()
 }
 
 
-float movSpeed = 5.0f; // :l
+float movSpeed = 0.4; // :l
 
 void App::update(float deltaTime) {
 

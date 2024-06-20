@@ -140,5 +140,17 @@
     <ClInclude Include="xoshiro.h">
       <Filter>Header Files\PRNG</Filter>
     </ClInclude>
+    <ClInclude Include="shishua.h">
+      <Filter>Header Files\PRNG</Filter>
+    </ClInclude>
+    <ClInclude Include="shishua-half-sse2.h">
+      <Filter>Header Files\PRNG</Filter>
+    </ClInclude>
+    <ClInclude Include="shishua-sse2.h">
+      <Filter>Header Files\PRNG</Filter>
+    </ClInclude>
+    <ClInclude Include="shishua-avx2.h">
+      <Filter>Header Files\PRNG</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -100,6 +100,15 @@ void UserInterface::frameTimeGraph()
         refresh_time += 1.0f / 60.0f;
     }
     ImGui::PlotLines("Frame time", values, IM_ARRAYSIZE(values), values_offset, NULL, 50.0f, 150.0f, ImVec2(0, 40));
+
+    double avg = 0;
+    for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
+        avg += values[i];
+    }
+    avg /= IM_ARRAYSIZE(values);
+    ImGui::Text("Average frametime: ");
+    ImGui::SameLine();
+    ImGui::Text(std::to_string(avg).c_str());
 }
 
 void UserInterface::sceneViewer()

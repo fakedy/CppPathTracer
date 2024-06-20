@@ -1,4 +1,5 @@
 #pragma once
+#define GLM_FORCE_SSE2
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
