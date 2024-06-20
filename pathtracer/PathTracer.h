@@ -1,11 +1,12 @@
 #pragma once
+#define GLM_FORCE_SSE2
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 #include "Camera.h"
 #include <chrono>
 #include "ViewPortData.h"
 #include "Ray.h"
-#include "Scene.h"
 
 class PathTracer
 {
@@ -30,7 +31,6 @@ private:
     };
 
     Camera* camera;
-    Scene* scene;
 
     GLuint PBO;
 
@@ -41,6 +41,7 @@ private:
 
     std::vector<glm::vec4> accumilated_image;
     std::vector<uint32_t> widthIterator, heightIterator;
+    std::chrono::steady_clock::time_point startTime;
 
     PayLoad traceRay(Ray ray);
     PayLoad closestHit(Ray ray, float hitDistance, Surface* closestSurface);
@@ -48,7 +49,7 @@ private:
 
     float getRandFloat(float lower, float upper);
 
-    glm::vec3 raygen(uint32_t x, uint32_t y);
+    glm::vec3 raygen(double x, double y);
     uint32_t convertColor(const glm::vec4& color);
 };
 

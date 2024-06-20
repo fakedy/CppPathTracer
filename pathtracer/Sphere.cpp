@@ -1,4 +1,5 @@
 #include "Sphere.h"
+#include <iostream>
 
 
 
@@ -9,9 +10,10 @@ float Sphere::intersection(Ray ray) const
 
     glm::vec3 cameraPos = ray.origin - position;
     // Equations to calculate hit on a sphere.
-    float a = glm::dot(rayDir, rayDir);
-    float b = 2.0f * dot(cameraPos, rayDir);
-    float c = dot(cameraPos, cameraPos) - (radius * radius);
+    float a = 1.0f; //glm::dot(rayDir, rayDir); // because rayDir should be normalized
+    //std::cout << a << std::endl;
+    float b = 2.0f * glm::dot(cameraPos, rayDir);
+    float c = glm::dot(cameraPos, cameraPos) - (radius * radius);
     float disc = b * b - 4.0f * a * c;
 
     if (disc < 0) {

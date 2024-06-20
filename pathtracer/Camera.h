@@ -1,4 +1,5 @@
 #pragma once
+#define GLM_FORCE_SSE2
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -11,11 +12,10 @@ public:
 
 	glm::vec3 cameraPos;
 	const glm::vec3& getPosition() const { return cameraPos; }
-	const std::vector<glm::vec3>& getDirections() const { return directions; }
 
 	void resize(uint32_t width, uint32_t height);
 	void update();
-	glm::vec3 calcDirection(int x, int y, double offsetX, double offsetY);
+	glm::vec3 calcDirection(double x, double y);
 
 
 private:
@@ -38,7 +38,6 @@ private:
 	uint32_t height;
 
 	
-	std::vector<glm::vec3> directions; // one for each pixel on screen
 	glm::vec3 lookDir{0,0,-1};
 	glm::vec3 upDir{0,1,0};
 

@@ -5,6 +5,7 @@
 #include "ViewPortData.h"
 #include "KeyHandler.h"
 #include <iostream>
+#include <chrono>
 
 void renderData();
 Window* window = new Window();
@@ -13,46 +14,51 @@ Camera* camera = new Camera(glm::vec3(0,0,6), 45, 1920, 1080); // pos, fov, widt
 PathTracer* pathTracer = new PathTracer(viewPortData, camera);
 UserInterface* UI = new UserInterface(viewPortData);
 
+
 App::App()
 {
     KeyHandler::setKeyCallback(window->getWindow());
     
     UI->init(window->getWindow());
+    auto lastTime = std::chrono::high_resolution_clock::now();
+
+
     while (!window->windowShouldClose()) { // main loop
 
-        update(); // logic
-        window->update(renderData); // main render call
-        pathTracer->render();
-
-
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        auto elapsed = currentTime - lastTime; 
+        lastTime = currentTime;
+        update(elapsed.count()/10000000); // logic
         UI->draw();
+        window->update(renderData); // main render call
+        
     }
     UI->shutdown();
     window->shutdown();
 }
 
-void App::update() {
+
+float movSpeed = 0.4; // :l
+
+void App::update(float deltaTime) {
+
 
 
     if (KeyHandler::getKeyDown(KeyHandler::A)) {
-        camera->cameraPos += glm::vec3(-0.8, 0, 0);
+        camera->cameraPos += glm::vec3(-movSpeed, 0, 0) * deltaTime;
         pathTracer->update();
-        camera->update();
     }
     else if (KeyHandler::getKeyDown(KeyHandler::D)) {
-        camera->cameraPos += glm::vec3(0.8, 0, 0);
+        camera->cameraPos += glm::vec3(movSpeed, 0, 0) * deltaTime;
         pathTracer->update();
-        camera->update();
     }
     if (KeyHandler::getKeyDown(KeyHandler::W)) {
-        camera->cameraPos += glm::vec3(0, 0, -0.8);
+        camera->cameraPos += glm::vec3(0, 0, -movSpeed) * deltaTime;
         pathTracer->update();
-        camera->update();
     }
     else if (KeyHandler::getKeyDown(KeyHandler::S)) {
-        camera->cameraPos += glm::vec3(0, 0, 0.8);
+        camera->cameraPos += glm::vec3(0, 0, movSpeed) * deltaTime;
         pathTracer->update();
-        camera->update();
     }
 }
 
