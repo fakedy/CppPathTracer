@@ -33,18 +33,18 @@ public:
         material1->roughness = 0.2f;
         material1->metallic = 0.0f;
 
-        material2->albedo = glm::vec3(0.08, 0.08, 0.08);
-        material2->roughness = 0.2f;
+        material2->albedo = glm::vec3(1.0, 1.0, 1.0);
+        material2->roughness = 1.0f;
         material2->metallic = 0.0f;
 
-        material3->albedo = glm::vec3(0, 0, 0);
+        material3->albedo = glm::vec3(1.0, 1.0, 1.0);
         material3->roughness = 0.02f;
         material3->metallic = 0.0f;
 
         material4->albedo = glm::vec3(1.0, 1.0, 1.0);
         material4->roughness = 1.0f;
         material4->metallic = 0.0f;
-        material4->emissionColor = glm::vec3(1.0, 1.0, 1.0);
+        material4->emissionColor = material4->albedo;
         material4->emissionPower = 20.0f;
 
         material5->albedo = glm::vec3(0.1, 0.3, 0.5);
@@ -72,8 +72,8 @@ public:
         sphere3->radius = 1.5f;
         sphere3->materialIndex = 2;
 
-        sphere4->name = "Red Sphere";
-        sphere4->position = glm::vec3(-1, -1, -9);
+        sphere4->name = "lightSphere";
+        sphere4->position = glm::vec3(-1, 4, -9);
         sphere4->radius = 3.0f;
         sphere4->materialIndex = 3;
 

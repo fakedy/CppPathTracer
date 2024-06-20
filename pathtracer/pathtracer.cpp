@@ -5,9 +5,12 @@
 #include <execution>
 #include "Surface.h"
 #include <algorithm>
+#include "xoshiro.h"
 
 
 double random_double(float lower, float upper);
+double shiro_random_double(float lower, float upper);
+
 
 PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
 {
@@ -24,6 +27,7 @@ PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
     }
     init();
     startTime = std::chrono::high_resolution_clock::now();
+
 }
 
 
@@ -60,7 +64,7 @@ void PathTracer::render()
                 if (viewPortData->SSAA == true) {
                     // SSAA 4X
                     for (int i = 0; i < 4; i++) {
-                        color += glm::vec4(raygen(x + random_double(-0.5f, 0.5f), y + random_double(-0.5f, 0.5f)), 1.0f);
+                        color += glm::vec4(raygen(x + shiro_random_double(-0.5f, 0.5f), y + shiro_random_double(-0.5f, 0.5f)), 1.0f);
                     }
 
                     color /= 4;
@@ -208,11 +212,12 @@ glm::vec3 PathTracer::raygen(double x, double y) {
         }
 
         ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the surface + offset by normal dir to prevent hitting ourselves
-        glm::vec3 randVec = glm::vec3(random_double(-1.0f, 1.0f), random_double(-1.0f, 1.0f), random_double(-1.0f, 1.0f));
+        glm::vec3 randVec = glm::vec3(shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f));
         // while the vector is outside the unit sphere generate new til its not
         while (glm::length2(randVec) > 1) {
-            randVec = glm::vec3(random_double(-1.0f, 1.0f), random_double(-1.0f, 1.0f), random_double(-1.0f, 1.0f));
+            randVec = glm::vec3(shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f));
         }
+        
         
         randVec = glm::normalize(randVec); // create unit vector
         if (glm::dot(randVec, payLoad.normal) < 0) { // if dot product is negative its pointing in wrong direction
@@ -246,6 +251,11 @@ double random_double(float lower, float upper) {
     thread_local std::mt19937 generator(std::random_device{}());
     std::uniform_real_distribution<double> distribution(lower, upper);
     return distribution(generator);
+}
+
+double shiro_random_double(float lower, float upper) {
+    thread_local Xoshiro shiro = Xoshiro();
+    return shiro.random_double(lower, upper);
 }
 
 /**

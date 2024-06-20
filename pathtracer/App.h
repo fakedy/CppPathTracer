@@ -7,6 +7,6 @@ public:
 
 private:
 
-	void update();
+	void update(float deltaTime);
 };
 

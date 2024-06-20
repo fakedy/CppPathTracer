@@ -20,9 +20,13 @@ public:
 
 private:
 
+	uint32_t selectedObject = 0;
+
 	ViewPortData* viewPortData;
 
 	void settingsPanel();
+
+	void frameTimeGraph();
 
 	void objectPanel();
 	

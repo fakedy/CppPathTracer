@@ -28,6 +28,12 @@
     <Filter Include="Header Files\Materials">
       <UniqueIdentifier>{58e9d5ad-5183-4ee3-83d0-a3d8baf2299b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\PRNG">
+      <UniqueIdentifier>{12dfbb7b-2a98-4099-a8a2-aac1f07a3765}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\PRNG">
+      <UniqueIdentifier>{6b80af76-c1b2-4383-ba49-84200f089819}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -78,6 +84,9 @@
     <ClCompile Include="Box.cpp">
       <Filter>Source Files\Surfaces</Filter>
     </ClCompile>
+    <ClCompile Include="xoshiro.cpp">
+      <Filter>Source Files\PRNG</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h">
@@ -127,6 +136,9 @@
     </ClInclude>
     <ClInclude Include="Metallic.h">
       <Filter>Header Files\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="xoshiro.h">
+      <Filter>Header Files\PRNG</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
