@@ -17,6 +17,8 @@ void UserInterface::init(GLFWwindow* window)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
@@ -29,7 +31,19 @@ void UserInterface::draw()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::Begin("ViewPort");
+
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+    ImGui::Begin("DockSpace", NULL, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+                                    ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                                    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
+    ImGuiID dockspace_id = ImGui::GetID("dockspace");
+    ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);
+    ImGui::End();
+
+    //ImGui::SetNextWindowPos(ImVec2(0, 0));
+    //ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+    ImGui::Begin("ViewPort", NULL);
     viewPortData->width = ImGui::GetContentRegionAvail().x;
     viewPortData->height = ImGui::GetContentRegionAvail().y;
     ImGui::Image((void*)(intptr_t)viewPortData->textureID, ImVec2(viewPortData->width, viewPortData->height), ImVec2(0, 1), ImVec2(1, 0));
@@ -124,56 +138,10 @@ void UserInterface::sceneViewer()
     for (size_t i = 0; i < viewPortData->scene->surfaces.size(); i++)
     {
         Surface& object = *viewPortData->scene->surfaces[i];
-        int materialIndex = object.materialIndex;
-        std::shared_ptr<Material> material = viewPortData->scene->materials.at(materialIndex);
-
-        ImGui::Text(object.name.c_str());
-
-        if (ImGui::Button(("Material##" + std::to_string(i)).c_str())) {
-            ImGui::OpenPopup(("Materials##" + std::to_string(i)).c_str());
+        if (ImGui::Button(("object" + std::to_string(i)).c_str())) {
+            selectedObject = i;
         }
-
-        ImGui::SameLine();
-        ImGui::Text(("material: " + std::to_string(materialIndex)).c_str());
-        if (ImGui::BeginPopup(("Materials##" + std::to_string(i)).c_str())) {
-            ImGui::Text("Materials");
-            ImGui::Separator;
-            for (int i = 0; i < viewPortData->scene->materials.size(); i++) {
-                if (ImGui::Selectable(std::to_string(i).c_str())) {
-                    object.materialIndex = i;
-                    viewPortData->shouldReset = true;
-                }
-            }
-            ImGui::EndPopup();
-        }
-
-
-        colorArray[0] = material->albedo.r;
-        colorArray[1] = material->albedo.g;
-        colorArray[2] = material->albedo.b;
-
-        if (ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), colorArray)) {    // because imgui use the label as id
-            material->albedo = glm::vec3(colorArray[0], colorArray[1], colorArray[2]);     // we cant have the same label for each picker
-            viewPortData->shouldReset = true;
-        }
-
-        positionArray[0] = object.position.x;
-        positionArray[1] = object.position.y;
-        positionArray[2] = object.position.z;
-        if (ImGui::DragFloat3(("Translation##" + std::to_string(i)).c_str(), positionArray)) {
-            object.position = glm::vec3(positionArray[0], positionArray[1], positionArray[2]);     // we cant have the same label for each picker
-            viewPortData->shouldReset = true;
-        }
-
-        if (ImGui::SliderFloat(("Roughness##" + std::to_string(i)).c_str(), &material->roughness, 0, 1)) {
-            viewPortData->shouldReset = true;
-        }
-        if (ImGui::SliderFloat(("Radius##" + std::to_string(i)).c_str(), &object.radius, 0, 100)) {
-            viewPortData->shouldReset = true;
-        }
-        ImGui::Separator();
     }
-
     ImGui::End();
 }
 

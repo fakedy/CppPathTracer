@@ -56,18 +56,18 @@ void PathTracer::render()
         viewPortData->shouldReset = false;
     }
 
-    if (viewPortData->frameCount < 2000){ // this is just a pause preventing cpu from heating my room up when idle
+    if (viewPortData->frameCount < 1000000000){ // this is just a pause preventing cpu from heating my room up when idle
         std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
             for (uint32_t x = 0; x < viewPortData->width; x++) {
             glm::vec4 color = glm::vec4(0.0f);
 
                 if (viewPortData->SSAA == true) {
                     // SSAA 4X
-                    for (int i = 0; i < 8; i++) {
+                    for (int i = 0; i < 4; i++) {
                         color += glm::vec4(raygen(x + shiro_random_double(-0.5f, 0.5f), y + shiro_random_double(-0.5f, 0.5f)), 1.0f);
                     }
 
-                    color /= 8;
+                    color /= 4;
                 }
                 else {
                     color = glm::vec4(raygen(x, y), 1.0f);
