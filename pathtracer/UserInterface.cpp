@@ -80,7 +80,16 @@ void UserInterface::settingsPanel()
     ImGui::Text("Frame rate: %f fps", 1000 / viewPortData->frameTime.count());
     ImGui::Text("Frame count: %i", viewPortData->frameCount);
     ImGui::Text("Rendering resolution: %ix%i ", viewPortData->image_width, viewPortData->image_height);
-    ImGui::Text("Device: CPU");
+    if (ImGui::Button("Use GPU")) {
+        viewPortData->usingCompute = !viewPortData->usingCompute;
+        viewPortData->shouldReset = true;
+    }
+    if (viewPortData->usingCompute) {
+        ImGui::Text("Device: GPU");
+    }
+    else {
+        ImGui::Text("Device: CPU");
+    }
     if (ImGui::SliderInt("Bounces", &viewPortData->bounces, 1, 100)) {
         viewPortData->shouldReset = true;
     }

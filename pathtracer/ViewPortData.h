@@ -30,6 +30,7 @@ public:
         bool shouldReset = false;
         bool SSAA = false;
         float gammaValue = 2.2;
+        bool usingCompute = false;
 
 
     std::chrono::duration<double, std::milli> frameTime; // frame time

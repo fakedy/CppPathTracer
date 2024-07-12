@@ -66,7 +66,7 @@ void PathTracer::render()
     if (viewPortData->frameCount < 1000000000){ // this is just a pause preventing cpu from heating my room up when idle
 
         // need to fix this mess. set true to use cpu
-        if (true) {
+        if (viewPortData->usingCompute) {
 
             std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
                 for (uint32_t x = 0; x < viewPortData->width; x++) {
@@ -94,8 +94,15 @@ void PathTracer::render()
             bufferData();
         }
         else {
+            // use gpu compute shader
             glBindImageTexture(0, viewPortData->textureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-        
+
+            shader.setVec3("cameraPosition", camera->cameraPos);
+            shader.setVec2i("imageSize", glm::vec2(viewPortData->width,viewPortData->height));
+            shader.setInt("bounces", viewPortData->bounces);
+            shader.setMat4("inverseProj", camera->getInversProj());
+            shader.setMat4("inverseView", camera->getInverseView());
+
             glDispatchCompute((unsigned int)viewPortData->width, (unsigned int)viewPortData->height, 1);
             glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
             
@@ -225,7 +232,6 @@ glm::vec3 PathTracer::raygen(double x, double y) {
     glm::vec3 cameraPos = camera->getPosition();
 
     Ray ray; // general ray
-    Ray shadowRay; // ray info for calculating shadows
     ray.origin = cameraPos;
     ray.direction = glm::normalize(rayDir);
     glm::vec3 energy = glm::vec3(1.0f);

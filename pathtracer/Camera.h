@@ -16,14 +16,15 @@ public:
 	void resize(uint32_t width, uint32_t height);
 	void update();
 	glm::vec3 calcDirection(double x, double y);
-
-
-private:
+	glm::vec3 lookDir{0,0,-1};
 
 	const glm::mat4& getProj() const { return proj; }
 	const glm::mat4& getInversProj() const { return inverseProj; }
 	const glm::mat4& getViewMatrix() const { return view; }
 	const glm::mat4& getInverseView() const { return inverseView; }
+
+private:
+
 
 
 	glm::mat4 proj{1.0f};
@@ -38,7 +39,6 @@ private:
 	uint32_t height;
 
 	
-	glm::vec3 lookDir{0,0,-1};
 	glm::vec3 upDir{0,1,0};
 
 
