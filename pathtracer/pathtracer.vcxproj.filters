@@ -34,6 +34,9 @@
     <Filter Include="Header Files\PRNG">
       <UniqueIdentifier>{6b80af76-c1b2-4383-ba49-84200f089819}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\shaders">
+      <UniqueIdentifier>{b61281f5-9e7b-42e1-ad70-86bdd547af10}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -86,6 +89,9 @@
     </ClCompile>
     <ClCompile Include="xoshiro.cpp">
       <Filter>Source Files\PRNG</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShader.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -152,5 +158,13 @@
     <ClInclude Include="shishua-avx2.h">
       <Filter>Header Files\PRNG</Filter>
     </ClInclude>
+    <ClInclude Include="ComputeShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\shaders\computeShader.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -14,21 +14,24 @@ Camera* camera = new Camera(glm::vec3(0,0,6), 45, 1920, 1080); // pos, fov, widt
 PathTracer* pathTracer = new PathTracer(viewPortData, camera);
 UserInterface* UI = new UserInterface(viewPortData);
 
+float deltaTime = 0;
+float lastFrame = 0;
+
 
 App::App()
 {
     KeyHandler::setKeyCallback(window->getWindow());
     
     UI->init(window->getWindow());
-    auto lastTime = std::chrono::high_resolution_clock::now();
 
 
     while (!window->windowShouldClose()) { // main loop
 
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        auto elapsed = currentTime - lastTime; 
-        lastTime = currentTime;
-        update(elapsed.count()/10000000); // logic
+        double currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        update(deltaTime); // logic
         UI->draw();
         window->update(renderData); // main render call
         
@@ -38,28 +41,43 @@ App::App()
 }
 
 
-float movSpeed = 0.4; // :l
+float movSpeed = 5.0f; // :l
+float degree = 0.0f;
+float distance = 10.0f;
 
 void App::update(float deltaTime) {
 
 
-
     if (KeyHandler::getKeyDown(KeyHandler::A)) {
-        camera->cameraPos += glm::vec3(-movSpeed, 0, 0) * deltaTime;
+        //camera->cameraPos += glm::vec3(-movSpeed, 0, 0) * deltaTime;
+        degree = degree + movSpeed * deltaTime;
+        camera->cameraPos.x = glm::cos(degree) * distance;
+        camera->cameraPos.z = glm::sin(degree) * distance;
         pathTracer->update();
     }
     else if (KeyHandler::getKeyDown(KeyHandler::D)) {
-        camera->cameraPos += glm::vec3(movSpeed, 0, 0) * deltaTime;
+        //camera->cameraPos += glm::vec3(movSpeed, 0, 0) * deltaTime;
+        degree = degree - movSpeed*deltaTime;
+        camera->cameraPos.x = glm::cos(degree) * distance;
+        camera->cameraPos.z = glm::sin(degree) * distance;
         pathTracer->update();
     }
+
     if (KeyHandler::getKeyDown(KeyHandler::W)) {
-        camera->cameraPos += glm::vec3(0, 0, -movSpeed) * deltaTime;
+        //camera->cameraPos += glm::vec3(0, 0, -movSpeed) * deltaTime;
+        distance = distance - movSpeed * deltaTime;
+        camera->cameraPos.x = glm::cos(degree) * distance;
+        camera->cameraPos.z = glm::sin(degree) * distance;
         pathTracer->update();
     }
     else if (KeyHandler::getKeyDown(KeyHandler::S)) {
-        camera->cameraPos += glm::vec3(0, 0, movSpeed) * deltaTime;
+        //camera->cameraPos += glm::vec3(0, 0, movSpeed) * deltaTime;
+        distance = distance + movSpeed * deltaTime;
+        camera->cameraPos.x = glm::cos(degree) * distance;
+        camera->cameraPos.z = glm::sin(degree) * distance;
         pathTracer->update();
     }
+    
 }
 
 

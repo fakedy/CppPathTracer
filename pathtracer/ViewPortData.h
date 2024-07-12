@@ -30,7 +30,6 @@ public:
         bool shouldReset = false;
         bool SSAA = false;
         float gammaValue = 2.2;
-        // Starting to realise having this as just some data storage is inconvenient when wanting to make calls
 
 
     std::chrono::duration<double, std::milli> frameTime; // frame time

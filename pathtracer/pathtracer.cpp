@@ -34,13 +34,20 @@ PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
 
 void PathTracer::init()
 {
+
     glGenTextures(1, &viewPortData->textureID);
     glBindTexture(GL_TEXTURE_2D, viewPortData->textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viewPortData->width, viewPortData->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glGenBuffers(1, &PBO);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, viewPortData->width * viewPortData->height * 4, nullptr, GL_STREAM_DRAW);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     
 }
 
@@ -57,31 +64,43 @@ void PathTracer::render()
     }
 
     if (viewPortData->frameCount < 1000000000){ // this is just a pause preventing cpu from heating my room up when idle
-        std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
-            for (uint32_t x = 0; x < viewPortData->width; x++) {
-            glm::vec4 color = glm::vec4(0.0f);
 
-                if (viewPortData->SSAA == true) {
-                    // SSAA 4X
-                    for (int i = 0; i < 4; i++) {
-                        color += glm::vec4(raygen(x + shiro_random_double(-0.5f, 0.5f), y + shiro_random_double(-0.5f, 0.5f)), 1.0f);
+        // need to fix this mess. set true to use cpu
+        if (true) {
+
+            std::for_each(std::execution::par, heightIterator.begin(), heightIterator.end(), [this](uint32_t y) {
+                for (uint32_t x = 0; x < viewPortData->width; x++) {
+                glm::vec4 color = glm::vec4(0.0f);
+
+                    if (viewPortData->SSAA == true) {
+                        // SSAA 4X
+                        for (int i = 0; i < 4; i++) {
+                            color += glm::vec4(raygen(x + shiro_random_double(-0.5f, 0.5f), y + shiro_random_double(-0.5f, 0.5f)), 1.0f);
+                        }
+
+                        color /= 4;
+                    }
+                    else {
+                        color = glm::vec4(raygen(x, y), 1.0f);
                     }
 
-                    color /= 4;
+                    accumilated_image[x + y * viewPortData->width] += color;
+                    glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
+                    acc_color /= (float)viewPortData->frameCount;
+                    acc_color = glm::clamp(acc_color, glm::vec4(0.0f), glm::vec4(1.0f));
+                    viewPortData->ImageData[x + y * viewPortData->width] = convertColor(acc_color); // store our color in the output in 255 range
                 }
-                else {
-                    color = glm::vec4(raygen(x, y), 1.0f);
-                }
-
-                accumilated_image[x + y * viewPortData->width] += color;
-                glm::vec4 acc_color = accumilated_image[x + y * viewPortData->width];
-                acc_color /= (float)viewPortData->frameCount;
-                acc_color = glm::clamp(acc_color, glm::vec4(0.0f), glm::vec4(1.0f));
-                viewPortData->ImageData[x + y * viewPortData->width] = convertColor(acc_color); // store our color in the output in 255 range
-            }
-        });
-        bufferData();
+            });
+            bufferData();
+        }
+        else {
+            glBindImageTexture(0, viewPortData->textureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
         
+            glDispatchCompute((unsigned int)viewPortData->width, (unsigned int)viewPortData->height, 1);
+            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+            
+        }
+
     }
 
 
@@ -98,12 +117,17 @@ void PathTracer::resize()
     delete[]viewPortData->ImageData;
     viewPortData->ImageData = new uint32_t[viewPortData->width * viewPortData->height];
 
+    
+
     glBindTexture(GL_TEXTURE_2D, viewPortData->textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viewPortData->width, viewPortData->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viewPortData->width, viewPortData->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glBindTexture(GL_TEXTURE_2D, 0);
+
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, viewPortData->width * viewPortData->height * 4, nullptr, GL_STREAM_DRAW);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+    
     viewPortData->image_width = viewPortData->width;
     viewPortData->image_height = viewPortData->height;
     camera->resize(viewPortData->width, viewPortData->height);
@@ -126,17 +150,20 @@ void PathTracer::update() {
     viewPortData->frameCount = 1;
     accumilated_image.resize(viewPortData->width * viewPortData->height);
     accumilated_image.clear();
+    camera->update();
 }
 
 void PathTracer::bufferData()
 {
+
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
-    glBufferSubData(GL_PIXEL_UNPACK_BUFFER, 0, viewPortData->width * viewPortData->height * 4, viewPortData->ImageData);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, viewPortData->width * viewPortData->height * 4, viewPortData->ImageData, GL_STREAM_DRAW);
 
     glBindTexture(GL_TEXTURE_2D, viewPortData->textureID);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, viewPortData->width, viewPortData->height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
     glBindTexture(GL_TEXTURE_2D, 0);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
 PathTracer::PayLoad PathTracer::traceRay(Ray ray)
@@ -213,7 +240,7 @@ glm::vec3 PathTracer::raygen(double x, double y) {
 
         ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the surface + offset by normal dir to prevent hitting ourselves
         glm::vec3 randVec = glm::vec3(shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f));
-        // while the vector is outside the unit sphere generate new til its not
+        // while the vector is outside the unit sphere generate new til its not. this is so we can get a non bias vector
         while (glm::length2(randVec) > 1) {
             randVec = glm::vec3(shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f));
         }

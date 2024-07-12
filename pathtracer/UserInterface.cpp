@@ -107,13 +107,13 @@ void UserInterface::frameTimeGraph()
     static double refresh_time = 0.0;
     if (refresh_time == 0.0)
         refresh_time = ImGui::GetTime();
-    while (refresh_time < ImGui::GetTime()) // Create dummy data at fixed 60 hz rate for the demo
+    while (refresh_time < ImGui::GetTime()) 
     {
         values[values_offset] = viewPortData->frameTime.count();
         values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
         refresh_time += 1.0f / 60.0f;
     }
-    ImGui::PlotLines("Frame time", values, IM_ARRAYSIZE(values), values_offset, NULL, 50.0f, 150.0f, ImVec2(0, 40));
+    ImGui::PlotLines("Frame time", values, IM_ARRAYSIZE(values), values_offset, NULL, 16.0f, 150.0f, ImVec2(0, 40));
 
     double avg = 0;
     for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
@@ -150,6 +150,7 @@ void UserInterface::objectPanel()
     ImGui::Begin("Object");
 
     float colorArray[3];
+    float emissionColor[3];
     float positionArray[3];
     Surface& object = *viewPortData->scene->surfaces[selectedObject];
     int materialIndex = object.materialIndex;
@@ -179,9 +180,17 @@ void UserInterface::objectPanel()
     colorArray[0] = material->albedo.r;
     colorArray[1] = material->albedo.g;
     colorArray[2] = material->albedo.b;
+    emissionColor[0] = material->emissionColor.r;
+    emissionColor[1] = material->emissionColor.g;
+    emissionColor[2] = material->emissionColor.b;
 
     if (ImGui::ColorEdit3(("Color##" + std::to_string(selectedObject)).c_str(), colorArray)) {    // because imgui use the label as id
         material->albedo = glm::vec3(colorArray[0], colorArray[1], colorArray[2]);     // we cant have the same label for each picker
+        viewPortData->shouldReset = true;
+    }
+
+    if (ImGui::ColorEdit3(("Emissive Color##" + std::to_string(selectedObject)).c_str(), emissionColor)) {    // because imgui use the label as id
+        material->emissionColor = glm::vec3(emissionColor[0], emissionColor[1], emissionColor[2]);     // we cant have the same label for each picker
         viewPortData->shouldReset = true;
     }
 

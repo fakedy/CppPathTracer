@@ -27,7 +27,8 @@ void Camera::update() {
 
 void Camera::calculateView()
 {
-	view = glm::lookAt(cameraPos, cameraPos + lookDir, upDir);
+	//view = glm::lookAt(cameraPos, cameraPos + lookDir, upDir);
+	view = glm::lookAt(cameraPos, glm::vec3(0,0,0), upDir);
 	inverseView = glm::inverse(view);
 }
 

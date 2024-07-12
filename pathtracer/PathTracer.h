@@ -7,6 +7,7 @@
 #include <chrono>
 #include "ViewPortData.h"
 #include "Ray.h"
+#include "ComputeShader.h"
 
 class PathTracer
 {
@@ -22,6 +23,8 @@ public:
 
 private:
 
+    
+
 
     struct PayLoad {
         glm::vec3 normal;
@@ -33,6 +36,8 @@ private:
     Camera* camera;
 
     GLuint PBO;
+
+    ComputeShader shader = ComputeShader("Resources/shaders/computeShader.glsl");
 
     void init();
     void resize();

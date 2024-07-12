@@ -8,9 +8,7 @@ class KeyHandler
 {
 public:
 
-	// static is antipattern :(
-	// will fix this stuff later
-    // I feel like someone would execute me for this code
+	// I'll just use this as a static class for now.
 
 	KeyHandler() = delete;
 
