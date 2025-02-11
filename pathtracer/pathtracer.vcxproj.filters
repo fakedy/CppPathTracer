@@ -140,9 +140,6 @@
     <ClInclude Include="Dialectric.h">
       <Filter>Header Files\Materials</Filter>
     </ClInclude>
-    <ClInclude Include="Metallic.h">
-      <Filter>Header Files\Materials</Filter>
-    </ClInclude>
     <ClInclude Include="xoshiro.h">
       <Filter>Header Files\PRNG</Filter>
     </ClInclude>
@@ -160,6 +157,9 @@
     </ClInclude>
     <ClInclude Include="ComputeShader.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Metallic.h">
+      <Filter>Header Files\Materials</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

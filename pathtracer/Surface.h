@@ -9,11 +9,11 @@ class Surface
 {
 
 public:
-    std::string name; 
-    glm::vec3 position;
-    float radius;
+    std::string name{};
+    glm::vec3 position{};
+    float radius{};
 
-    int materialIndex = 0;
+    int materialIndex{};
 
     virtual float intersection(Ray ray) const = 0;
 

@@ -24,8 +24,6 @@ public:
 private:
 
     
-
-
     struct PayLoad {
         glm::vec3 normal;
         float hitDistance;

@@ -31,10 +31,8 @@ PathTracer::PathTracer(ViewPortData* viewPortData, Camera* camera)
 }
 
 
-
 void PathTracer::init()
 {
-
     glGenTextures(1, &viewPortData->textureID);
     glBindTexture(GL_TEXTURE_2D, viewPortData->textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -47,8 +45,58 @@ void PathTracer::init()
     glGenBuffers(1, &PBO);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, viewPortData->width * viewPortData->height * 4, nullptr, GL_STREAM_DRAW);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-    
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);   
+
+    // oh well
+
+    struct alignas(16) GPU_Sphere {
+        alignas(16) glm::vec3 position{};
+        float radius{};
+        int materialIndex{};
+    };
+
+    std::vector<GPU_Sphere> gpuSpheres;
+    for (int i = 0; i < viewPortData->scene->surfaces.size(); i++) {
+        // Assuming Surface has a method or type tag to determine its type.
+            Sphere* sphere = static_cast<Sphere*>(viewPortData->scene->surfaces[i].get());
+            GPU_Sphere gpuSphere;
+            gpuSphere.position = sphere->position;
+            gpuSphere.radius = sphere->radius;
+            gpuSphere.materialIndex = sphere->materialIndex;
+            gpuSpheres.push_back(gpuSphere);
+    }
+
+    GLuint ssboSpheres;
+    glGenBuffers(1, &ssboSpheres);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSpheres);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, gpuSpheres.size() * sizeof(GPU_Sphere), gpuSpheres.data(), GL_DYNAMIC_DRAW);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssboSpheres);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+
+
+
+    std::vector<Material> materialBuffer;
+    materialBuffer.reserve(viewPortData->scene->materials.size()); // Reserve space to avoid reallocation
+
+    // Copy the actual Material objects (not shared_ptrs)
+    for (const auto& matPtr : viewPortData->scene->materials) {
+        if (matPtr) {  // Ensure valid pointer
+            materialBuffer.push_back(*matPtr);
+        }
+    }
+
+    GLuint ssboMaterials;
+    glGenBuffers(1, &ssboMaterials);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboMaterials);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, materialBuffer.size() * sizeof(Material), materialBuffer.data(), GL_DYNAMIC_DRAW);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboMaterials);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 }
 
 void PathTracer::render()
@@ -268,7 +316,6 @@ glm::vec3 PathTracer::raygen(double x, double y) {
     
     return light;
 }
-
 
 /**
  * @brief  Returns a random float between lower and upper bound.

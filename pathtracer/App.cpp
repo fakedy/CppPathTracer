@@ -32,7 +32,6 @@ App::App()
         lastFrame = currentFrame;
 
         update(deltaTime); // logic
-        UI->draw();
         window->update(renderData); // main render call
         
     }

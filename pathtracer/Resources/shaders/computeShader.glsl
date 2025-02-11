@@ -3,12 +3,19 @@
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout(rgba8, binding = 0) uniform image2D imgOutput;
 
+
 uniform vec3 cameraPosition;
 uniform mat4 inverseProj;
 uniform mat4 inverseView;
 uniform ivec2 imageSize;
 
 uniform int bounces;
+
+float randGen() {
+
+    float val = fract(sin(dot(gl_GlobalInvocationID.xy/imageSize, vec2(12.9898, 78.233))) * 43758.5453);
+    return (val*2) - 1.0f;
+}
 
 struct Ray {
     vec3 origin;
@@ -18,6 +25,7 @@ struct Ray {
 struct Sphere {
     vec3 position;
     float radius;
+    int materialIndex;
 
     float intersection(Ray ray)
     {
@@ -39,16 +47,23 @@ struct Sphere {
     }
 };
 
+layout(std430, binding = 1) buffer Spheres {
+    Sphere spheres[];
+};
+
 struct Material {
     vec3 albedo;
+    vec3 emissionColor;
     float roughness;
     float metallic;
-    vec3 emissionColor;
     float emissionPower;
 
     vec3 getEmission() { return emissionColor * emissionPower; }
 };
 
+layout(std430, binding = 2) buffer Materials {
+    Material materials[];
+};
 struct PayLoad {
     vec3 normal;
     float hitDistance;
@@ -63,7 +78,6 @@ PayLoad miss(Ray ray)
     return payLoad;
 }
 
-
 PayLoad closestHit(Ray ray, float hitDistance, Sphere closestSurface)
 {
     vec3 cameraPos = ray.origin - closestSurface.position;
@@ -77,53 +91,41 @@ PayLoad closestHit(Ray ray, float hitDistance, Sphere closestSurface)
     return payLoad;
 }
 
-
 PayLoad traceRay(Ray ray) {
     // fix this for glsl
 
-    /*
+    bool hitSphere = false;
     float hitDistance = 20000; // view distance
-    Surface* closestSurface = nullptr;
+    Sphere closestSurface;
 
-    for (auto& surfacePtr : viewPortData->scene->surfaces) {
+    for (int i = 0; i < spheres.length(); i++) {
 
-        Surface& surface = *surfacePtr;
+        Sphere sphere = spheres[i];
 
 
-        float hitdist = surface.intersection(ray);
+        float hitdist = sphere.intersection(ray);
 
         if (hitdist > 0.0 && hitdist < hitDistance) {
             hitDistance = hitdist;
-            closestSurface = &surface;
+            closestSurface = sphere;
+            hitSphere = true;
         }
     }
-    */
-    Sphere sphere;
-    sphere.position = vec3(0.0f, 0.0f, 0.0f);
-    sphere.radius = 1.0f;
 
-    float hitDistance = sphere.intersection(ray);
 
-    /*
-    if (closestSurface == nullptr) {
-        return miss(ray);
-    }
-    */
-    if (hitDistance < 0.0f) {
+    if (hitSphere == false) {
         return miss(ray);
     }
 
-    return closestHit(ray, hitDistance, sphere);
+    return closestHit(ray, hitDistance, closestSurface);
 }
 
 vec3 raygen(float x, float y) {
 
-    // clean this stuff up soon
-    // too much duplicate code in SSAA if statement
 
-    vec3 light = vec3(0.0f, 0.0f, 0.0f); // variable to store the accumilated color from bounces
+    vec3 light = vec3(0.0f); // variable to store the accumilated color from bounces
     vec3 backGroundColor = vec3(0.0f, 0.0f, 0.0f); // background color of scene
-    vec3 energy = vec3(1.0f, 1.0f, 1.0f);
+    vec3 energy = vec3(1.0f);
 
     vec2 coord = vec2((float(x)) / imageSize.x, float((y)) / imageSize.y); // translate pixel coordinate to clip space coord [0, 1]
     coord = coord * 2.0f - 1.0f; // remap the coordinates to [-1, 1]
@@ -143,25 +145,22 @@ vec3 raygen(float x, float y) {
         }
 
         ray.origin = payLoad.hitPosition + payLoad.normal * 0.0001f; // where we hit the surface + offset by normal dir to prevent hitting ourselves
-        //vec3 randVec = vec3(shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f));
-        vec3 randVec = vec3(1.0f, 1.0f, 1.0f); // temp
+        float randValue = randGen();
+        vec3 randVec = vec3(randValue);
+
         // while the vector is outside the unit sphere generate new til its not. this is so we can get a non bias vector
-        /*
-        while (glm::length2(randVec) > 1) {
-            randVec = vec3(shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f), shiro_random_double(-1.0f, 1.0f));
+
+        while (length(randVec) > 1) {
+            float randValue = randGen();
+            randVec = vec3(randValue);
         }
-        */
 
         randVec = normalize(randVec); // create unit vector
         if (dot(randVec, payLoad.normal) < 0) { // if dot product is negative its pointing in wrong direction
             randVec = -randVec;
         }
 
-        Material material; //*viewPortData->scene->materials[payLoad.surface->materialIndex];
-        material.roughness = 1.0f;
-        material.emissionPower = 1.0f;
-        material.emissionColor = vec3(1.0f, 1.0f, 1.0f);
-        material.albedo = vec3(0.0f,1.0f,0.0f);
+        Material material = materials[payLoad.surface.materialIndex];
 
         vec3 perturbedNormal = (payLoad.normal + material.roughness * randVec);
         ray.direction = normalize(reflect(ray.direction, perturbedNormal));
